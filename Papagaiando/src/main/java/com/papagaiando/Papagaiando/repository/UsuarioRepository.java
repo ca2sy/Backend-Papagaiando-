@@ -15,5 +15,6 @@ public interface UsuarioRepository extends JpaRepository<UsuarioModel, UUID> {
 
     Optional<UsuarioModel> findByTokenRecuperacao(String token);
 
+    boolean existsByEmail(String email);
     
 }

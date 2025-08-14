@@ -1,12 +1,17 @@
 package com.papagaiando.Papagaiando.model;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -26,6 +31,10 @@ public class BotaoModel {
     @Column(nullable = false)
     private String urlAudio;
 
+    @ManyToMany(mappedBy = "botoesPadrao")
+    @JsonBackReference
+    private Set<PerfilModel> perfis = new HashSet<>();
+    
     // Construtores
     public BotaoModel() {}
 
@@ -36,6 +45,15 @@ public class BotaoModel {
     }
 
     // Getters e Setters
+
+    public Set<PerfilModel> getPerfis() {
+        return perfis;
+    }
+
+    public void setPerfis(Set<PerfilModel> perfis) {
+        this.perfis = perfis;
+    }
+    
     public UUID getId() {
         return id;
     }

@@ -84,5 +84,8 @@ public class BotaoPersonalizadoModel {
 
     public void setPerfil(PerfilModel perfil) {
         this.perfil = perfil;
+        if (perfil != null && !perfil.getBotoesPersonalizados().contains(this)) {
+            perfil.getBotoesPersonalizados().add(this);
+        }
     }
 }

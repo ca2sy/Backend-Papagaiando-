@@ -21,11 +21,42 @@ public class UsuarioService {
     private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     // Registrar usuário
-    public UsuarioModel registrarUsuario(String email, String nome, String senha) {
+      public UsuarioModel registrarUsuario(String email, String nome, String senha) {
+        if (usuarioRepository.existsByEmail(email)) {
+            throw new RuntimeException("Email já cadastrado");
+        }
+        
         String senhaCriptografada = passwordEncoder.encode(senha);
         UsuarioModel usuario = new UsuarioModel(email, senhaCriptografada, nome);
         return usuarioRepository.save(usuario);
     }
+
+public UsuarioModel atualizarUsuario(UUID id, String nome, String email, String senha) {
+    UsuarioModel usuario = usuarioRepository.findById(id)
+        .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+    // Atualiza email se fornecido e diferente
+    if (email != null && !email.equals(usuario.getEmail())) {
+        if (usuarioRepository.existsByEmail(email)) {
+            throw new RuntimeException("Email já está em uso");
+        }
+        usuario.setEmail(email);
+    }
+
+    // Atualiza nome se fornecido
+    if (nome != null) {
+        if (nome.isBlank()) throw new IllegalArgumentException("Nome inválido");
+        usuario.setNome(nome);
+    }
+
+    // Atualiza senha se fornecida
+    if (senha != null) {
+        if (senha.length() < 8) throw new IllegalArgumentException("Senha muito curta");
+        usuario.setSenha(passwordEncoder.encode(senha));
+    }
+
+    return usuarioRepository.save(usuario);
+}
 
     // Listar todos os usuários
     public List<UsuarioModel> listarUsuarios() {
@@ -35,19 +66,6 @@ public class UsuarioService {
     // Buscar por ID
     public Optional<UsuarioModel> buscarPorId(UUID id) {
         return usuarioRepository.findById(id);
-    }
-
-    // Atualizar usuário
-    public UsuarioModel atualizarUsuario(UUID id, String nome, String email, String senha) {
-        Optional<UsuarioModel> optionalUsuario = usuarioRepository.findById(id);
-        if (optionalUsuario.isPresent()) {
-            UsuarioModel usuario = optionalUsuario.get();
-            usuario.setNome(nome);
-            usuario.setEmail(email);
-            usuario.setSenha(passwordEncoder.encode(senha));
-            return usuarioRepository.save(usuario);
-        }
-        return null;
     }
 
     // Deletar usuário
@@ -92,5 +110,15 @@ public boolean redefinirSenha(String token, String novaSenha) {
         }
     }
     return false;
+}
+
+public UsuarioModel autenticarUsuario(String email, String senha) {
+    UsuarioModel usuario = usuarioRepository.findByEmail(email);
+    
+    if (usuario == null || !passwordEncoder.matches(senha, usuario.getSenha())) {
+        throw new RuntimeException("Email ou senha inválidos");
+    }
+    
+    return usuario;
 }
 }

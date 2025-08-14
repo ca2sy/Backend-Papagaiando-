@@ -14,6 +14,7 @@ public interface BotaoPersonalizadoModelRepository extends JpaRepository<BotaoPe
    
     List<BotaoPersonalizadoModel> findByPerfil(PerfilModel perfil);
 
+     List<BotaoPersonalizadoModel> findByPerfilId(UUID perfilId);
  
     List<BotaoPersonalizadoModel> findByPerfilAndNomeContainingIgnoreCase(PerfilModel perfil, String nome);
 }

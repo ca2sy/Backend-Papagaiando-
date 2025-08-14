@@ -1,16 +1,16 @@
 package com.papagaiando.Papagaiando.controller;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
+import com.papagaiando.Papagaiando.dto.BotaoPersonalizadoCreateDTO;
+import com.papagaiando.Papagaiando.model.BotaoPersonalizadoModel;
+import com.papagaiando.Papagaiando.service.BotaoPersonalizadoService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.papagaiando.Papagaiando.model.BotaoPersonalizadoModel;
-import com.papagaiando.Papagaiando.model.PerfilModel;
-import com.papagaiando.Papagaiando.service.BotaoPersonalizadoService;
+import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/botoes/personalizados")
@@ -19,44 +19,54 @@ public class BotaoPersonalizadoController {
     @Autowired
     private BotaoPersonalizadoService botaoService;
 
-    // Criar botão personalizado
-    @PostMapping("/criar")
+    @PostMapping
     public ResponseEntity<BotaoPersonalizadoModel> criarBotao(
-            @RequestParam String nome,
-            @RequestParam String urlImagem,
-            @RequestParam String urlAudio,
-            @RequestBody PerfilModel perfil) {
-        BotaoPersonalizadoModel criado = botaoService.criarBotao(nome, urlImagem, urlAudio, perfil);
-        return ResponseEntity.ok(criado);
+            @Valid @RequestBody BotaoPersonalizadoCreateDTO dto) {
+        
+        BotaoPersonalizadoModel criado = botaoService.criarBotaoPorPerfilId(
+            dto.getNome(),
+            dto.getUrlImagem(),
+            dto.getUrlAudio(),
+            dto.getPerfilId()
+        );
+        
+        return ResponseEntity.status(HttpStatus.CREATED).body(criado);
     }
 
-    // Listar todos os botões de um perfil
     @GetMapping("/perfil/{perfilId}")
-    public ResponseEntity<List<BotaoPersonalizadoModel>> listarPorPerfil(@PathVariable UUID perfilId,
-                                                                          @RequestBody PerfilModel perfil) {
-        return ResponseEntity.ok(botaoService.listarPorPerfil(perfil));
+    public ResponseEntity<List<BotaoPersonalizadoModel>> listarPorPerfil(
+            @PathVariable UUID perfilId) {
+        
+        List<BotaoPersonalizadoModel> botoes = botaoService.listarPorPerfilId(perfilId);
+        return ResponseEntity.ok(botoes);
     }
 
-    // Buscar botão por ID
-    @GetMapping("/{id}")
-    public ResponseEntity<BotaoPersonalizadoModel> buscarPorId(@PathVariable UUID id) {
-        Optional<BotaoPersonalizadoModel> botao = botaoService.buscarPorId(id);
-        return botao.map(ResponseEntity::ok)
-                    .orElse(ResponseEntity.notFound().build());
-    }
-
-    // Buscar botões de um perfil por nome
     @GetMapping("/perfil/{perfilId}/buscar")
     public ResponseEntity<List<BotaoPersonalizadoModel>> buscarPorNome(
             @PathVariable UUID perfilId,
-            @RequestParam String nome,
-            @RequestBody PerfilModel perfil) {
-        return ResponseEntity.ok(botaoService.buscarPorNome(perfil, nome));
+            @RequestParam String nome) {
+        
+        if (nome == null || nome.trim().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        
+        List<BotaoPersonalizadoModel> botoes = botaoService.buscarPorNomeId(perfilId, nome);
+        return ResponseEntity.ok(botoes);
     }
 
-    // Deletar botão
+    @GetMapping("/{id}")
+    public ResponseEntity<BotaoPersonalizadoModel> buscarPorId(
+            @PathVariable UUID id) {
+        
+        return botaoService.buscarPorId(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletarBotao(@PathVariable UUID id) {
+    public ResponseEntity<Void> deletarBotao(
+            @PathVariable UUID id) {
+        
         botaoService.deletarBotao(id);
         return ResponseEntity.noContent().build();
     }

@@ -14,6 +14,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
@@ -36,7 +37,12 @@ public class PerfilModel {
     private String urlFoto;
 
     @ManyToMany
-    private Set<BotaoModel> botoesPadrao = new HashSet<>();
+    @JoinTable(
+    name = "perfil_botao_padrao",
+    joinColumns = @JoinColumn(name = "perfil_id"),
+    inverseJoinColumns = @JoinColumn(name = "botao_id")
+)
+private Set<BotaoModel> botoesPadrao = new HashSet<>();
 
     @OneToMany(mappedBy = "perfil", fetch = FetchType.LAZY)
     @JsonManagedReference
@@ -99,11 +105,6 @@ public class PerfilModel {
         return usuario;
     }
 
-    public void setUsuario(UsuarioModel usuario) {
-        this.usuario = usuario;
-    }
-
-
     public String geturlFoto() {
         return urlFoto;
     }
@@ -113,7 +114,26 @@ public class PerfilModel {
         this.urlFoto = urlFoto;
     }
 
+public void adicionarBotaoPadrao(BotaoModel botao) {
+        this.botoesPadrao.add(botao);
+        if (!botao.getPerfis().contains(this)) {
+            botao.getPerfis().add(this);
+        }
+    }
 
+    public void adicionarBotaoPersonalizado(BotaoPersonalizadoModel botao) {
+        this.botoesPersonalizados.add(botao);
+        if (botao.getPerfil() != this) {
+            botao.setPerfil(this);
+        }
+    }
+
+    public void setUsuario(UsuarioModel usuario) {
+        this.usuario = usuario;
+        if (usuario != null && !usuario.getPerfis().contains(this)) {
+            usuario.getPerfis().add(this);
+        }
+    }
 
     
 }

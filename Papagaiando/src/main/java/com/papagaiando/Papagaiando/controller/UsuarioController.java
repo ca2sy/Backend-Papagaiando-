@@ -1,16 +1,21 @@
 package com.papagaiando.Papagaiando.controller;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import com.papagaiando.Papagaiando.dto.*;
+import com.papagaiando.Papagaiando.model.UsuarioModel;
+import com.papagaiando.Papagaiando.security.JwtUtil;
+import com.papagaiando.Papagaiando.service.UsuarioService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.papagaiando.Papagaiando.model.UsuarioModel;
-import com.papagaiando.Papagaiando.service.UsuarioService;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.HashMap;
 
 @RestController
 @RequestMapping("/usuarios")
@@ -19,76 +24,87 @@ public class UsuarioController {
     @Autowired
     private UsuarioService usuarioService;
 
-    // Criar usuário
-    @PostMapping("/criar")
-    public ResponseEntity<UsuarioModel> criarUsuario(
-            @RequestParam String nome,
-            @RequestParam String email,
-            @RequestParam String senha) {
-        UsuarioModel usuarioCriado = usuarioService.registrarUsuario(email, nome, senha);
-        return ResponseEntity.ok(usuarioCriado);
+    @Autowired
+    private JwtUtil jwtUtil;
+
+    @PostMapping
+    public ResponseEntity<?> criarUsuario(
+            @Valid @RequestBody UsuarioCreateDTO usuarioDTO) {
+        
+        UsuarioModel usuarioCriado = usuarioService.registrarUsuario(
+            usuarioDTO.getEmail(),
+            usuarioDTO.getNome(),
+            usuarioDTO.getSenha()
+        );
+
+        // Retorna o usuário e token em um Map simples
+        String token = jwtUtil.generateToken(
+            usuarioCriado.getEmail(),
+            usuarioCriado.getId().toString()
+        );
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("usuario", usuarioCriado);
+        response.put("token", token);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    // Listar todos os usuários
     @GetMapping
     public ResponseEntity<List<UsuarioModel>> listarUsuarios() {
         List<UsuarioModel> usuarios = usuarioService.listarUsuarios();
         return ResponseEntity.ok(usuarios);
     }
 
-    // Buscar usuário por ID
     @GetMapping("/{id}")
     public ResponseEntity<UsuarioModel> buscarPorId(@PathVariable UUID id) {
-        Optional<UsuarioModel> usuario = usuarioService.buscarPorId(id);
-        return usuario.map(ResponseEntity::ok)
-                      .orElse(ResponseEntity.notFound().build());
+        return usuarioService.buscarPorId(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    // Atualizar usuário
     @PutMapping("/{id}")
     public ResponseEntity<UsuarioModel> atualizarUsuario(
             @PathVariable UUID id,
-            @RequestParam String nome,
-            @RequestParam String email,
-            @RequestParam String senha) {
-        UsuarioModel atualizado = usuarioService.atualizarUsuario(id, nome, email, senha);
-        if (atualizado != null) {
-            return ResponseEntity.ok(atualizado);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+            @Valid @RequestBody UsuarioUpdateDTO usuarioDTO) {
+        
+        UsuarioModel atualizado = usuarioService.atualizarUsuario(
+            id,
+            usuarioDTO.getNome(),
+            usuarioDTO.getEmail(),
+            usuarioDTO.getSenha()
+        );
+        
+        return ResponseEntity.ok(atualizado);
     }
 
-    // Deletar usuário
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletarUsuario(@PathVariable UUID id) {
         usuarioService.deletarUsuario(id);
         return ResponseEntity.noContent().build();
     }
 
-    // Esqueci minha senha
     @PostMapping("/esqueci-senha")
-    public ResponseEntity<String> esqueciSenha(@RequestParam String email) {
+    public ResponseEntity<String> esqueciSenha(@RequestParam @Email String email) {
         String token = usuarioService.gerarTokenRecuperacao(email);
         if (token != null) {
-            // Aqui você pode enviar o token por e-mail
-            // emailService.enviarToken(email, token);
             return ResponseEntity.ok("E-mail de recuperação enviado!");
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado");
         }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado");
     }
 
-    // Redefinir senha
     @PostMapping("/redefinir-senha")
     public ResponseEntity<String> redefinirSenha(
-            @RequestParam String token,
-            @RequestParam String novaSenha) {
-        boolean sucesso = usuarioService.redefinirSenha(token, novaSenha);
+            @Valid @RequestBody PasswordResetDTO resetDTO) {
+        
+        boolean sucesso = usuarioService.redefinirSenha(
+            resetDTO.getToken(),
+            resetDTO.getNovaSenha()
+        );
+        
         if (sucesso) {
             return ResponseEntity.ok("Senha redefinida com sucesso!");
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Token inválido ou expirado");
         }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Token inválido ou expirado");
     }
 }

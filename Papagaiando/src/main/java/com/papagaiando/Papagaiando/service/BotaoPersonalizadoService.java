@@ -5,41 +5,55 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.papagaiando.Papagaiando.model.BotaoPersonalizadoModel;
 import com.papagaiando.Papagaiando.model.PerfilModel;
 import com.papagaiando.Papagaiando.repository.BotaoPersonalizadoModelRepository;
+import com.papagaiando.Papagaiando.repository.PerfilRepository;
 
 @Service
 public class BotaoPersonalizadoService {
 
     @Autowired
-    private BotaoPersonalizadoModelRepository botaoPersonalizadoRepository;
+    private BotaoPersonalizadoModelRepository botaoRepository;
 
-    // Criar botão personalizado
-    public BotaoPersonalizadoModel criarBotao(String nome, String urlImagem, String urlAudio, PerfilModel perfil) {
-        BotaoPersonalizadoModel botao = new BotaoPersonalizadoModel(nome, urlImagem, urlAudio, perfil);
-        return botaoPersonalizadoRepository.save(botao);
+    @Autowired
+    private PerfilRepository perfilRepository;
+
+   
+       public BotaoPersonalizadoModel criarBotaoPorPerfilId(String nome, String urlImagem, String urlAudio, UUID perfilId) {
+   
+    if (!perfilRepository.existsById(perfilId)) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Perfil com ID " + perfilId + " não encontrado");
     }
+    
+    PerfilModel perfil = perfilRepository.getReferenceById(perfilId); 
+    return botaoRepository.save(new BotaoPersonalizadoModel(nome, urlImagem, urlAudio, perfil));
+}
 
-    // Listar todos os botões de um perfil
-    public List<BotaoPersonalizadoModel> listarPorPerfil(PerfilModel perfil) {
-        return botaoPersonalizadoRepository.findByPerfil(perfil);
-    }
-
-    // Buscar botão personalizado por ID
-    public Optional<BotaoPersonalizadoModel> buscarPorId(UUID id) {
-        return botaoPersonalizadoRepository.findById(id);
+    public List<BotaoPersonalizadoModel> listarPorPerfilId(UUID perfilId) {
+        if (!perfilRepository.existsById(perfilId)) {
+            throw new RuntimeException("Perfil não encontrado");
+        }
+        return botaoRepository.findByPerfilId(perfilId);
     }
 
     // Buscar botões de um perfil por nome
-    public List<BotaoPersonalizadoModel> buscarPorNome(PerfilModel perfil, String nome) {
-        return botaoPersonalizadoRepository.findByPerfilAndNomeContainingIgnoreCase(perfil, nome);
+    public List<BotaoPersonalizadoModel> buscarPorNomeId(UUID perfilId, String nome) {
+        Optional<PerfilModel> perfilOpt = perfilRepository.findById(perfilId);
+        return perfilOpt.map(p -> botaoRepository.findByPerfilAndNomeContainingIgnoreCase(p, nome)).orElse(List.of());
     }
 
-    // Deletar botão personalizado
+    // Buscar botão por ID
+    public Optional<BotaoPersonalizadoModel> buscarPorId(UUID id) {
+        return botaoRepository.findById(id);
+    }
+
+    // Deletar botão
     public void deletarBotao(UUID id) {
-        botaoPersonalizadoRepository.deleteById(id);
+        botaoRepository.deleteById(id);
     }
 }

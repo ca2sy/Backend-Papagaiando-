@@ -17,7 +17,10 @@ public class BotaoService {
     private BotaoModelRepository botaoRepository;
 
     // Criar botão padrão
-    public BotaoModel criarBotao(String nome, String urlImagem, String urlAudio) {
+       public BotaoModel criarBotao(String nome, String urlImagem, String urlAudio) {
+        if (nome == null || nome.isBlank()) {
+            throw new IllegalArgumentException("Nome do botão é obrigatório");
+        }
         BotaoModel botao = new BotaoModel(nome, urlImagem, urlAudio);
         return botaoRepository.save(botao);
     }

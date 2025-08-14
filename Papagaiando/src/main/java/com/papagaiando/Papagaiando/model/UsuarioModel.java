@@ -1,13 +1,18 @@
 package com.papagaiando.Papagaiando.model;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -26,6 +31,10 @@ public class UsuarioModel {
 
     @Column(nullable = false)
     private String nome;
+
+    @OneToMany(mappedBy = "usuario")
+    @JsonManagedReference
+    private Set<PerfilModel> perfis = new HashSet<>();
 
     // Token de recuperação
     private String tokenRecuperacao;
@@ -60,4 +69,19 @@ public class UsuarioModel {
 
     public LocalDateTime getExpiracaoToken() { return expiracaoToken; }
     public void setExpiracaoToken(LocalDateTime expiracaoToken) { this.expiracaoToken = expiracaoToken; }
+
+    public Set<PerfilModel> getPerfis() {
+        return perfis;
+    }
+
+    public void setPerfis(Set<PerfilModel> perfis) {
+        this.perfis = perfis;
+    }
+
+     public void adicionarPerfil(PerfilModel perfil) {
+        this.perfis.add(perfil);
+        if (perfil.getUsuario() != this) {
+            perfil.setUsuario(this);
+        }
+    }
 }
