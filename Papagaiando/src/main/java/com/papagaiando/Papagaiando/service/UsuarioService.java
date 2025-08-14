@@ -55,43 +55,42 @@ public class UsuarioService {
         usuarioRepository.deleteById(id);
     }
 
-    // Gerar token de recuperação
-    public String gerarTokenRecuperacao(String email) {
-        Optional<UsuarioModel> optionalUsuario = usuarioRepository.findByEmail(email);
-        if (optionalUsuario.isPresent()) {
-            UsuarioModel usuario = optionalUsuario.get();
-            String token = UUID.randomUUID().toString();
-            usuario.setTokenRecuperacao(token);
-            usuario.setExpiracaoToken(LocalDateTime.now().plusHours(1)); // token válido por 1 hora
+   // Gerar token de recuperação
+public String gerarTokenRecuperacao(String email) {
+    UsuarioModel usuario = usuarioRepository.findByEmail(email); // seu método atual
+    if (usuario != null) {
+        String token = UUID.randomUUID().toString();
+        usuario.setTokenRecuperacao(token);
+        usuario.setExpiracaoToken(LocalDateTime.now().plusHours(1)); // token válido por 1 hora
+        usuarioRepository.save(usuario);
+        return token;
+    }
+    return null; // ou lançar exceção se não encontrar usuário
+}
+
+// Validar token de recuperação
+public boolean validarTokenRecuperacao(String token) {
+    Optional<UsuarioModel> optionalUsuario = usuarioRepository.findByTokenRecuperacao(token);
+    if (optionalUsuario.isPresent()) {
+        UsuarioModel usuario = optionalUsuario.get();
+        return usuario.getExpiracaoToken() != null && usuario.getExpiracaoToken().isAfter(LocalDateTime.now());
+    }
+    return false;
+}
+
+// Redefinir senha usando token
+public boolean redefinirSenha(String token, String novaSenha) {
+    Optional<UsuarioModel> optionalUsuario = usuarioRepository.findByTokenRecuperacao(token);
+    if (optionalUsuario.isPresent()) {
+        UsuarioModel usuario = optionalUsuario.get();
+        if (validarTokenRecuperacao(token)) {
+            usuario.setSenha(passwordEncoder.encode(novaSenha));
+            usuario.setTokenRecuperacao(null); // limpa token após uso
+            usuario.setExpiracaoToken(null);
             usuarioRepository.save(usuario);
-            return token;
+            return true;
         }
-        return null; // ou lançar exceção se não encontrar usuário
     }
-
-    // Validar token de recuperação
-    public boolean validarTokenRecuperacao(String token) {
-        Optional<UsuarioModel> optionalUsuario = usuarioRepository.findByTokenRecuperacao(token);
-        if (optionalUsuario.isPresent()) {
-            UsuarioModel usuario = optionalUsuario.get();
-            return usuario.getExpiracaoToken() != null && usuario.getExpiracaoToken().isAfter(LocalDateTime.now());
-        }
-        return false;
-    }
-
-    // Redefinir senha usando token
-    public boolean redefinirSenha(String token, String novaSenha) {
-        Optional<UsuarioModel> optionalUsuario = usuarioRepository.findByTokenRecuperacao(token);
-        if (optionalUsuario.isPresent()) {
-            UsuarioModel usuario = optionalUsuario.get();
-            if (validarTokenRecuperacao(token)) {
-                usuario.setSenha(passwordEncoder.encode(novaSenha));
-                usuario.setTokenRecuperacao(null); // limpa token após uso
-                usuario.setExpiracaoToken(null);
-                usuarioRepository.save(usuario);
-                return true;
-            }
-        }
-        return false;
-    }
+    return false;
+}
 }

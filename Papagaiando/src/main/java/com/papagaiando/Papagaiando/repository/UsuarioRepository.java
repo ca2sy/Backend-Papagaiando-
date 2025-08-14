@@ -10,7 +10,7 @@ import com.papagaiando.Papagaiando.model.UsuarioModel;
 public interface UsuarioRepository extends JpaRepository<UsuarioModel, UUID> {
 
    
-    Optional<UsuarioModel> findByEmail(String email);
+    UsuarioModel findByEmail(String email);
 
 
     Optional<UsuarioModel> findByTokenRecuperacao(String token);

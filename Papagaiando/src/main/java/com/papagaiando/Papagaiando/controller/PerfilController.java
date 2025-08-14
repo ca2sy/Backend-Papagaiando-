@@ -19,24 +19,24 @@ public class PerfilController {
     @Autowired
     private PerfilService perfilService;
 
-    
-    @PostMapping("/criar")
-    public ResponseEntity<PerfilModel> criarPerfil(
-            @RequestParam String nome,
-            @RequestParam int idade,
-            @RequestBody UsuarioModel usuario) { // Recebe o usuário como JSON
-        PerfilModel perfilCriado = perfilService.criarPerfil(nome, idade, usuario);
-        return ResponseEntity.ok(perfilCriado);
-    }
+    // Criar perfil
+   @PostMapping("/criar")
+public ResponseEntity<PerfilModel> criarPerfil(
+        @RequestParam String nome,
+        @RequestParam String urlFoto,
+        @RequestParam UUID usuarioId) {  // 
+    PerfilModel perfilCriado = perfilService.criarPerfilPorId(nome, urlFoto, usuarioId);
+    return ResponseEntity.ok(perfilCriado);
+}
 
-  
+    // Listar perfis
     @GetMapping
     public ResponseEntity<List<PerfilModel>> listarPerfis() {
         List<PerfilModel> perfis = perfilService.listarPerfis();
         return ResponseEntity.ok(perfis);
     }
 
- 
+    // Buscar perfil por ID
     @GetMapping("/{id}")
     public ResponseEntity<PerfilModel> buscarPorId(@PathVariable UUID id) {
         Optional<PerfilModel> perfil = perfilService.buscarPorId(id);
@@ -44,13 +44,14 @@ public class PerfilController {
                      .orElse(ResponseEntity.notFound().build());
     }
 
-  
+    // Atualizar perfil (nome e foto opcionais)
     @PutMapping("/{id}")
     public ResponseEntity<PerfilModel> atualizarPerfil(
             @PathVariable UUID id,
-            @RequestParam String nome,
-            @RequestParam int idade) {
-        PerfilModel atualizado = perfilService.atualizarPerfil(id, nome, idade);
+            @RequestParam(required = false) String nome,
+            @RequestParam(required = false) String urlFoto) {
+
+        PerfilModel atualizado = perfilService.atualizarPerfil(id, nome, urlFoto);
         if (atualizado != null) {
             return ResponseEntity.ok(atualizado);
         } else {
@@ -58,7 +59,7 @@ public class PerfilController {
         }
     }
 
-  
+    // Deletar perfil
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletarPerfil(@PathVariable UUID id) {
         perfilService.deletarPerfil(id);

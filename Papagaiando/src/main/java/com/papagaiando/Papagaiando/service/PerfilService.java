@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.papagaiando.Papagaiando.model.PerfilModel;
 import com.papagaiando.Papagaiando.model.UsuarioModel;
 import com.papagaiando.Papagaiando.repository.PerfilRepository;
+import com.papagaiando.Papagaiando.repository.UsuarioRepository;
 
 @Service
 public class PerfilService {
@@ -17,36 +18,51 @@ public class PerfilService {
     @Autowired
     private PerfilRepository perfilRepository;
 
-    // Criar perfil 
-    public PerfilModel criarPerfil(String nome, int idade, UsuarioModel usuario) {
-        PerfilModel perfil = new PerfilModel(idade, nome, usuario);
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
+    // Criar perfil
+    public PerfilModel criarPerfil(String nome, String urlFoto, UsuarioModel usuario) {
+        PerfilModel perfil = new PerfilModel(nome, urlFoto, usuario);
         return perfilRepository.save(perfil);
     }
+
+    public PerfilModel criarPerfilPorId(String nome, String urlFoto, UUID usuarioId) {
+    UsuarioModel usuario = usuarioRepository.findById(usuarioId)
+        .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+    PerfilModel perfil = new PerfilModel();
+    perfil.setNome(nome);
+    perfil.seturlFoto(urlFoto);
+    perfil.setUsuario(usuario);
+
+    return perfilRepository.save(perfil);
+}
+
 
     // Buscar por ID
     public Optional<PerfilModel> buscarPorId(UUID id) {
         return perfilRepository.findById(id);
     }
 
-    // Listar 
+    // Listar
     public List<PerfilModel> listarPerfis() {
         return perfilRepository.findAll();
     }
 
-    // Atualizar perfil
-    public PerfilModel atualizarPerfil(UUID id, String nome, int idade) {
+    // Atualizar perfil (nome e foto opcionais)
+    public PerfilModel atualizarPerfil(UUID id, String nome, String urlFoto) {
         Optional<PerfilModel> optionalPerfil = perfilRepository.findById(id);
         if (optionalPerfil.isPresent()) {
             PerfilModel perfil = optionalPerfil.get();
-            perfil.setNome(nome);
-            perfil.setIdade(idade);
+            if (nome != null) perfil.setNome(nome);
+            if (urlFoto != null) perfil.seturlFoto(urlFoto);
             return perfilRepository.save(perfil);
         }
-        return null; 
+        return null;
     }
 
-
+    // Deletar perfil
     public void deletarPerfil(UUID id) {
         perfilRepository.deleteById(id);
     }

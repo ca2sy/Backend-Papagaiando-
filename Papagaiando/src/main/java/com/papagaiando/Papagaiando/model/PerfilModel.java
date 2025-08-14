@@ -23,7 +23,7 @@ import jakarta.persistence.Table;
 @Table (name = "tb_perfis")
 public class PerfilModel {
     //nome, foto, idade, id, botao normal e botao personalizado (botoes: botaoN e botaoP estendem de botoes)
-    //falar pro professor dificuldade em mexer com imagens: onde elas vao ficar????
+   
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -32,10 +32,8 @@ public class PerfilModel {
     @Column(nullable = false)
     private String nome;
 
-    //foto a fazer(devido a duvida)
-
     @Column(nullable = false)
-    private int idade;
+    private String urlFoto;
 
     @ManyToMany
     private Set<BotaoModel> botoesPadrao = new HashSet<>();
@@ -50,11 +48,18 @@ public class PerfilModel {
     private UsuarioModel usuario;
 
 //construtor
-    public PerfilModel(int idade, String nome, UsuarioModel usuario) {
-        this.idade = idade;
+
+    
+
+    public PerfilModel(String nome, String urlFoto, UsuarioModel usuario) {
         this.nome = nome;
+        this.urlFoto = urlFoto;
         this.usuario = usuario;
         }
+
+
+    public PerfilModel() {
+    }
 
 
     //getters e setters
@@ -64,14 +69,6 @@ public class PerfilModel {
 
     public void setNome(String nome) {
         this.nome = nome;
-    }
-
-    public int getIdade() {
-        return idade;
-    }
-
-    public void setIdade(int idade) {
-        this.idade = idade;
     }
 
     public UUID getId() {
@@ -105,6 +102,18 @@ public class PerfilModel {
     public void setUsuario(UsuarioModel usuario) {
         this.usuario = usuario;
     }
+
+
+    public String geturlFoto() {
+        return urlFoto;
+    }
+
+
+    public void seturlFoto(String urlFoto) {
+        this.urlFoto = urlFoto;
+    }
+
+
 
     
 }
