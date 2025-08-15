@@ -1,12 +1,11 @@
 package com.papagaiando.Papagaiando.dto;
 
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public class UsuarioUpdateDTO {
-   @NotBlank private String nome;
-    @NotBlank @Email private String email;
+    private String nome;
+   @Email private String email;
     @Size(min = 8) private String senha;
 
     // Getters e Setters

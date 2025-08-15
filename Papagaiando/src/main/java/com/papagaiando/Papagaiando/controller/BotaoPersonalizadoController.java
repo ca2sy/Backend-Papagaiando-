@@ -1,6 +1,7 @@
 package com.papagaiando.Papagaiando.controller;
 
 import com.papagaiando.Papagaiando.dto.BotaoPersonalizadoCreateDTO;
+import com.papagaiando.Papagaiando.dto.BotaoPersonalizadoUpdateDTO;
 import com.papagaiando.Papagaiando.model.BotaoPersonalizadoModel;
 import com.papagaiando.Papagaiando.service.BotaoPersonalizadoService;
 import jakarta.validation.Valid;
@@ -38,7 +39,7 @@ public class BotaoPersonalizadoController {
             @PathVariable UUID perfilId) {
         
         List<BotaoPersonalizadoModel> botoes = botaoService.listarPorPerfilId(perfilId);
-        return ResponseEntity.ok(botoes);
+    return ResponseEntity.ok(botoes); 
     }
 
     @GetMapping("/perfil/{perfilId}/buscar")
@@ -70,4 +71,18 @@ public class BotaoPersonalizadoController {
         botaoService.deletarBotao(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{id}")
+public ResponseEntity<BotaoPersonalizadoModel> atualizarBotaoPersonalizado(
+    @PathVariable UUID id,
+    @Valid @RequestBody BotaoPersonalizadoUpdateDTO dto
+) {
+    BotaoPersonalizadoModel botaoAtualizado = botaoService.atualizarBotaoPersonalizado(
+        id,
+        dto.getNome(),
+        dto.getUrlImagem(),
+        dto.getUrlAudio()
+    );
+    return ResponseEntity.ok(botaoAtualizado);
+}
 }

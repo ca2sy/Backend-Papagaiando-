@@ -39,16 +39,15 @@ public class AuthController {
                 usuario.getId().toString()
             );
             
-            // Retorna um objeto com as informações básicas
             Map<String, Object> response = new HashMap<>();
             response.put("token", token);
             response.put("email", usuario.getEmail());
             response.put("userId", usuario.getId());
+            response.put("nome", usuario.getNome());
             
             return ResponseEntity.ok(response);
             
         } catch (RuntimeException e) {
-            // Retorna erro formatado como objeto
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("error", "Credenciais inválidas");
             errorResponse.put("message", e.getMessage());

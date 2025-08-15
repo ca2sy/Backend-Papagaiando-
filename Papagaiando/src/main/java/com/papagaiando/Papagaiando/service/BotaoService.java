@@ -44,4 +44,15 @@ public class BotaoService {
     public void deletarBotao(UUID id) {
         botaoRepository.deleteById(id);
     }
+
+    public BotaoModel atualizarBotao(UUID id, String nome, String urlImagem, String urlAudio) {
+    BotaoModel botao = buscarPorId(id).orElseThrow(() -> 
+        new RuntimeException("Botão não encontrado"));
+    
+    if (nome != null) botao.setNome(nome);
+    if (urlImagem != null) botao.setUrlImagem(urlImagem);
+    if (urlAudio != null) botao.setUrlAudio(urlAudio);
+    
+    return botaoRepository.save(botao);
+}
 }

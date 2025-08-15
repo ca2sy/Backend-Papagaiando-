@@ -1,6 +1,7 @@
 package com.papagaiando.Papagaiando.controller;
 
 import com.papagaiando.Papagaiando.dto.BotaoCreateDTO;
+import com.papagaiando.Papagaiando.dto.BotaoUpdateDTO;
 import com.papagaiando.Papagaiando.model.BotaoModel;
 import com.papagaiando.Papagaiando.service.BotaoService;
 import jakarta.validation.Valid;
@@ -56,4 +57,18 @@ public class BotaoController {
         botaoService.deletarBotao(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{id}")
+public ResponseEntity<BotaoModel> atualizarBotao(
+    @PathVariable UUID id,
+    @Valid @RequestBody BotaoUpdateDTO dto
+) {
+    BotaoModel botaoAtualizado = botaoService.atualizarBotao(
+        id,
+        dto.getNome(),
+        dto.getUrlImagem(),
+        dto.getUrlAudio()
+    );
+    return ResponseEntity.ok(botaoAtualizado);
+}
 }

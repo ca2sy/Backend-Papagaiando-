@@ -38,7 +38,7 @@ public class BotaoPersonalizadoService {
         if (!perfilRepository.existsById(perfilId)) {
             throw new RuntimeException("Perfil não encontrado");
         }
-        return botaoRepository.findByPerfilId(perfilId);
+         return botaoRepository.findByPerfilId(perfilId);
     }
 
     // Buscar botões de um perfil por nome
@@ -56,4 +56,20 @@ public class BotaoPersonalizadoService {
     public void deletarBotao(UUID id) {
         botaoRepository.deleteById(id);
     }
+
+    public BotaoPersonalizadoModel atualizarBotaoPersonalizado(
+    UUID id, 
+    String nome, 
+    String urlImagem, 
+    String urlAudio
+) {
+    BotaoPersonalizadoModel botao = buscarPorId(id).orElseThrow(() -> 
+        new RuntimeException("Botão personalizado não encontrado"));
+    
+    if (nome != null) botao.setNome(nome);
+    if (urlImagem != null) botao.setUrlImagem(urlImagem);
+    if (urlAudio != null) botao.setUrlAudio(urlAudio);
+    
+    return botaoRepository.save(botao);
+}
 }

@@ -5,8 +5,6 @@ import com.papagaiando.Papagaiando.model.UsuarioModel;
 import com.papagaiando.Papagaiando.security.JwtUtil;
 import com.papagaiando.Papagaiando.service.UsuarioService;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Email;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,21 +21,17 @@ public class UsuarioController {
 
     @Autowired
     private UsuarioService usuarioService;
-
     @Autowired
     private JwtUtil jwtUtil;
 
     @PostMapping
-    public ResponseEntity<?> criarUsuario(
-            @Valid @RequestBody UsuarioCreateDTO usuarioDTO) {
-        
+    public ResponseEntity<?> criarUsuario(@Valid @RequestBody UsuarioCreateDTO usuarioDTO) {
         UsuarioModel usuarioCriado = usuarioService.registrarUsuario(
             usuarioDTO.getEmail(),
             usuarioDTO.getNome(),
             usuarioDTO.getSenha()
         );
 
-        // Retorna o usuário e token em um Map simples
         String token = jwtUtil.generateToken(
             usuarioCriado.getEmail(),
             usuarioCriado.getId().toString()
@@ -85,7 +79,7 @@ public class UsuarioController {
     }
 
     @PostMapping("/esqueci-senha")
-    public ResponseEntity<String> esqueciSenha(@RequestParam @Email String email) {
+    public ResponseEntity<String> esqueciSenha(@RequestParam String email) {
         String token = usuarioService.gerarTokenRecuperacao(email);
         if (token != null) {
             return ResponseEntity.ok("E-mail de recuperação enviado!");
