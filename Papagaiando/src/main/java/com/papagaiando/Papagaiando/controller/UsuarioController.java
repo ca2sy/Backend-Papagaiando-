@@ -51,7 +51,7 @@ public class UsuarioController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UsuarioModel> buscarPorId(@PathVariable UUID id) {
+    public ResponseEntity<UsuarioModel> buscarPorId(@PathVariable("id") UUID id) {
         return usuarioService.buscarPorId(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

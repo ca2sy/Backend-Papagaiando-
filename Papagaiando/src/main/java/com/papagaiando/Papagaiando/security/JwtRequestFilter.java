@@ -1,10 +1,18 @@
 package com.papagaiando.Papagaiando.security;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import java.util.ArrayList;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -17,28 +25,48 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     @Autowired
     private JwtUtil jwtUtil;
 
-    @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
-            throws ServletException, IOException {
-
-        final String authorizationHeader = request.getHeader("Authorization");
-
-        String email = null;
-        String jwt = null;
-
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            jwt = authorizationHeader.substring(7);
-            email = jwtUtil.extractUsername(jwt);
-        }
-
-        if (email != null && jwtUtil.validateToken(jwt, email)) {
-            request.setAttribute("userId", jwtUtil.extractUserId(jwt));
-            request.setAttribute("email", email);
-        } else if (authorizationHeader != null) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token inválido ou expirado");
-            return;
-        }
-
+@Override
+protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+        throws ServletException, IOException {
+    
+    // Endpoints públicos
+    String path = request.getServletPath();
+    if (path.equals("/auth/login") || 
+        (path.equals("/usuarios") && "POST".equals(request.getMethod()))) {
         chain.doFilter(request, response);
+        return;
     }
+
+    // Validação do token
+    String authHeader = request.getHeader("Authorization");
+    if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token não fornecido");
+        return;
+    }
+
+    try {
+        String token = authHeader.substring(7);
+        String email = jwtUtil.extractUsername(token);
+        
+        if (email != null && jwtUtil.validateToken(token, email)) {
+            
+            UsernamePasswordAuthenticationToken authentication = 
+                new UsernamePasswordAuthenticationToken(email, null, new ArrayList<>());
+            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            
+            chain.doFilter(request, response);
+        } else {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token inválido");
+        }
+    } catch (Exception e) {
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Erro no token: " + e.getMessage());
+    }
+}
+
+private void sendError(HttpServletResponse response, String message) throws IOException {
+    response.setContentType("application/json");
+    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+    response.getWriter().write("{\"error\": \"" + message + "\"}");
+}
 }

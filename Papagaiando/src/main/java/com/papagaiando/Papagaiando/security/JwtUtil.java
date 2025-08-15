@@ -5,6 +5,7 @@ import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 
 import org.springframework.stereotype.Component;
@@ -36,8 +37,22 @@ public class JwtUtil {
     }
 
     public Boolean validateToken(String token, String email) {
-        return extractUsername(token).equals(email) && !isTokenExpired(token);
+    try {
+        final String username = extractUsername(token);
+        boolean valid = username.equals(email) && !isTokenExpired(token);
+        
+        System.out.println("Validando token:");
+        System.out.println(" - Email esperado: " + email);
+        System.out.println(" - Email no token: " + username);
+        System.out.println(" - Token expirado? " + isTokenExpired(token));
+        System.out.println(" - Token válido? " + valid);
+        
+        return valid;
+    } catch (Exception e) {
+        System.out.println("Erro na validação: " + e.getMessage());
+        return false;
     }
+}
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -48,6 +63,14 @@ public class JwtUtil {
         return claims.get("userId", String.class);
     }
 
+    public UUID extractUserIdAsUUID(String token) {
+    String userId = extractUserId(token);
+    try {
+        return UUID.fromString(userId);
+    } catch (IllegalArgumentException e) {
+        throw new JwtException("ID de usuário inválido no token");
+    }
+}
     public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
