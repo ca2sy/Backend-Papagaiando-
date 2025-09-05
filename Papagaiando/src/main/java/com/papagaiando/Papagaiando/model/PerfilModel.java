@@ -14,17 +14,13 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
-@Table (name = "tb_perfis")
+@Table(name = "tb_perfis")
 public class PerfilModel {
-    //nome, foto, idade, id, botao normal e botao personalizado (botoes: botaoN e botaoP estendem de botoes)
-   
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -36,39 +32,26 @@ public class PerfilModel {
     @Column(nullable = false)
     private String urlFoto;
 
-    @ManyToMany
-    @JoinTable(
-    name = "perfil_botao_padrao",
-    joinColumns = @JoinColumn(name = "perfil_id"),
-    inverseJoinColumns = @JoinColumn(name = "botao_id")
-)
-private Set<BotaoModel> botoesPadrao = new HashSet<>();
-
     @OneToMany(mappedBy = "perfil", fetch = FetchType.LAZY)
     @JsonManagedReference
-    private Set<BotaoPersonalizadoModel> botoesPersonalizados = new HashSet<>();
+    private Set<CategoriaModel> categorias = new HashSet<>();
 
     @ManyToOne
     @JoinColumn(name = "usuario_id")
     @JsonBackReference
     private UsuarioModel usuario;
 
-//construtor
-
-    
-
+    // Construtor
     public PerfilModel(String nome, String urlFoto, UsuarioModel usuario) {
         this.nome = nome;
         this.urlFoto = urlFoto;
         this.usuario = usuario;
-        }
-
+    }
 
     public PerfilModel() {
     }
 
-
-    //getters e setters
+    // Getters e Setters
     public String getNome() {
         return nome;
     }
@@ -85,46 +68,30 @@ private Set<BotaoModel> botoesPadrao = new HashSet<>();
         this.id = id;
     }
 
-    public Set<BotaoModel> getBotoesPadrao() {
-        return botoesPadrao;
+    public Set<CategoriaModel> getCategorias() {
+        return categorias;
     }
 
-    public void setBotoesPadrao(Set<BotaoModel> botoesPadrao) {
-        this.botoesPadrao = botoesPadrao;
-    }
-
-    public Set<BotaoPersonalizadoModel> getBotoesPersonalizados() {
-        return botoesPersonalizados;
-    }
-
-    public void setBotoesPersonalizados(Set<BotaoPersonalizadoModel> botoesPersonalizados) {
-        this.botoesPersonalizados = botoesPersonalizados;
+    public void setCategorias(Set<CategoriaModel> categorias) {
+        this.categorias = categorias;
     }
 
     public UsuarioModel getUsuario() {
         return usuario;
     }
 
-    public String geturlFoto() {
+    public String getUrlFoto() {
         return urlFoto;
     }
 
-
-    public void seturlFoto(String urlFoto) {
+    public void setUrlFoto(String urlFoto) {
         this.urlFoto = urlFoto;
     }
 
-public void adicionarBotaoPadrao(BotaoModel botao) {
-        this.botoesPadrao.add(botao);
-        if (!botao.getPerfis().contains(this)) {
-            botao.getPerfis().add(this);
-        }
-    }
-
-    public void adicionarBotaoPersonalizado(BotaoPersonalizadoModel botao) {
-        this.botoesPersonalizados.add(botao);
-        if (botao.getPerfil() != this) {
-            botao.setPerfil(this);
+    public void adicionarCategoria(CategoriaModel categoria) {
+        this.categorias.add(categoria);
+        if (categoria.getPerfil() != this) {
+            categoria.setPerfil(this);
         }
     }
 
@@ -134,6 +101,4 @@ public void adicionarBotaoPadrao(BotaoModel botao) {
             usuario.getPerfis().add(this);
         }
     }
-
-    
 }

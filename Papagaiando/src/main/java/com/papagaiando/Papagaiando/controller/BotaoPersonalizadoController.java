@@ -24,34 +24,34 @@ public class BotaoPersonalizadoController {
     public ResponseEntity<BotaoPersonalizadoModel> criarBotao(
             @Valid @RequestBody BotaoPersonalizadoCreateDTO dto) {
         
-        BotaoPersonalizadoModel criado = botaoService.criarBotaoPorPerfilId(
+        BotaoPersonalizadoModel criado = botaoService.criarBotaoPorCategoriaId(
             dto.getNome(),
             dto.getUrlImagem(),
             dto.getUrlAudio(),
-            dto.getPerfilId()
+            dto.getCategoriaId() // Mudado de perfilId para categoriaId
         );
         
         return ResponseEntity.status(HttpStatus.CREATED).body(criado);
     }
 
-    @GetMapping("/perfil/{perfilId}")
-    public ResponseEntity<List<BotaoPersonalizadoModel>> listarPorPerfil(
-            @PathVariable UUID perfilId) {
+    @GetMapping("/categoria/{categoriaId}")
+    public ResponseEntity<List<BotaoPersonalizadoModel>> listarPorCategoria(
+            @PathVariable UUID categoriaId) {
         
-        List<BotaoPersonalizadoModel> botoes = botaoService.listarPorPerfilId(perfilId);
-    return ResponseEntity.ok(botoes); 
+        List<BotaoPersonalizadoModel> botoes = botaoService.listarPorCategoriaId(categoriaId);
+        return ResponseEntity.ok(botoes);
     }
 
-    @GetMapping("/perfil/{perfilId}/buscar")
+    @GetMapping("/categoria/{categoriaId}/buscar")
     public ResponseEntity<List<BotaoPersonalizadoModel>> buscarPorNome(
-            @PathVariable UUID perfilId,
+            @PathVariable UUID categoriaId,
             @RequestParam String nome) {
         
         if (nome == null || nome.trim().isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
         
-        List<BotaoPersonalizadoModel> botoes = botaoService.buscarPorNomeId(perfilId, nome);
+        List<BotaoPersonalizadoModel> botoes = botaoService.buscarPorNomeCategoriaId(categoriaId, nome);
         return ResponseEntity.ok(botoes);
     }
 
@@ -73,16 +73,16 @@ public class BotaoPersonalizadoController {
     }
 
     @PutMapping("/{id}")
-public ResponseEntity<BotaoPersonalizadoModel> atualizarBotaoPersonalizado(
-    @PathVariable UUID id,
-    @Valid @RequestBody BotaoPersonalizadoUpdateDTO dto
-) {
-    BotaoPersonalizadoModel botaoAtualizado = botaoService.atualizarBotaoPersonalizado(
-        id,
-        dto.getNome(),
-        dto.getUrlImagem(),
-        dto.getUrlAudio()
-    );
-    return ResponseEntity.ok(botaoAtualizado);
-}
+    public ResponseEntity<BotaoPersonalizadoModel> atualizarBotaoPersonalizado(
+        @PathVariable UUID id,
+        @Valid @RequestBody BotaoPersonalizadoUpdateDTO dto
+    ) {
+        BotaoPersonalizadoModel botaoAtualizado = botaoService.atualizarBotaoPersonalizado(
+            id,
+            dto.getNome(),
+            dto.getUrlImagem(),
+            dto.getUrlAudio()
+        );
+        return ResponseEntity.ok(botaoAtualizado);
+    }
 }

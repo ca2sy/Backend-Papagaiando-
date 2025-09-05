@@ -33,7 +33,7 @@ public class BotaoModel {
 
     @ManyToMany(mappedBy = "botoesPadrao")
     @JsonBackReference
-    private Set<PerfilModel> perfis = new HashSet<>();
+    private Set<CategoriaModel> categorias = new HashSet<>();
     
     // Construtores
     public BotaoModel() {}
@@ -45,13 +45,12 @@ public class BotaoModel {
     }
 
     // Getters e Setters
-
-    public Set<PerfilModel> getPerfis() {
-        return perfis;
+    public Set<CategoriaModel> getCategorias() {
+        return categorias;
     }
 
-    public void setPerfis(Set<PerfilModel> perfis) {
-        this.perfis = perfis;
+    public void setCategorias(Set<CategoriaModel> categorias) {
+        this.categorias = categorias;
     }
     
     public UUID getId() {

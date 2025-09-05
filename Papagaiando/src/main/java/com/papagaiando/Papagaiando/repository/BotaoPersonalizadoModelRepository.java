@@ -7,14 +7,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import com.papagaiando.Papagaiando.model.BotaoPersonalizadoModel;
-import com.papagaiando.Papagaiando.model.PerfilModel;
+import com.papagaiando.Papagaiando.model.CategoriaModel;
 
 @Repository
 public interface BotaoPersonalizadoModelRepository extends JpaRepository<BotaoPersonalizadoModel, UUID> {
    
-    List<BotaoPersonalizadoModel> findByPerfil(PerfilModel perfil);
+    List<BotaoPersonalizadoModel> findByCategoria(CategoriaModel categoria);
 
-     List<BotaoPersonalizadoModel> findByPerfilId(UUID perfilId);
+    List<BotaoPersonalizadoModel> findByCategoriaId(UUID categoriaId);
  
-    List<BotaoPersonalizadoModel> findByPerfilAndNomeContainingIgnoreCase(PerfilModel perfil, String nome);
+    List<BotaoPersonalizadoModel> findByCategoriaAndNomeContainingIgnoreCase(CategoriaModel categoria, String nome);
 }

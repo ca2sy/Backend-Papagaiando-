@@ -16,8 +16,7 @@ public class BotaoService {
     @Autowired
     private BotaoModelRepository botaoRepository;
 
-    // Criar botão padrão
-       public BotaoModel criarBotao(String nome, String urlImagem, String urlAudio) {
+    public BotaoModel criarBotao(String nome, String urlImagem, String urlAudio) {
         if (nome == null || nome.isBlank()) {
             throw new IllegalArgumentException("Nome do botão é obrigatório");
         }
@@ -25,34 +24,30 @@ public class BotaoService {
         return botaoRepository.save(botao);
     }
 
-    // Listar todos os botões padrão
     public List<BotaoModel> listarBotoes() {
         return botaoRepository.findAll();
     }
 
-    // Buscar botão padrão por ID
     public Optional<BotaoModel> buscarPorId(UUID id) {
         return botaoRepository.findById(id);
     }
 
-    // Buscar botões padrão por nome
     public List<BotaoModel> buscarPorNome(String nome) {
         return botaoRepository.findByNomeContainingIgnoreCase(nome);
     }
 
-    // Deletar botão padrão
     public void deletarBotao(UUID id) {
         botaoRepository.deleteById(id);
     }
 
     public BotaoModel atualizarBotao(UUID id, String nome, String urlImagem, String urlAudio) {
-    BotaoModel botao = buscarPorId(id).orElseThrow(() -> 
-        new RuntimeException("Botão não encontrado"));
-    
-    if (nome != null) botao.setNome(nome);
-    if (urlImagem != null) botao.setUrlImagem(urlImagem);
-    if (urlAudio != null) botao.setUrlAudio(urlAudio);
-    
-    return botaoRepository.save(botao);
-}
+        BotaoModel botao = buscarPorId(id).orElseThrow(() -> 
+            new RuntimeException("Botão não encontrado"));
+        
+        if (nome != null) botao.setNome(nome);
+        if (urlImagem != null) botao.setUrlImagem(urlImagem);
+        if (urlAudio != null) botao.setUrlAudio(urlAudio);
+        
+        return botaoRepository.save(botao);
+    }
 }

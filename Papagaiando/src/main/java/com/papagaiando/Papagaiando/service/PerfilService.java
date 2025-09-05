@@ -21,8 +21,7 @@ public class PerfilService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    // Criar perfil
-   public PerfilModel criarPerfilPorId(String nome, String urlFoto, UUID usuarioId) {
+    public PerfilModel criarPerfilPorId(String nome, String urlFoto, UUID usuarioId) {
         UsuarioModel usuario = usuarioRepository.findById(usuarioId)
             .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
         
@@ -35,22 +34,23 @@ public class PerfilService {
             .orElseThrow(() -> new RuntimeException("Perfil não encontrado"));
         
         if (nome != null) perfil.setNome(nome);
-        if (urlFoto != null) perfil.seturlFoto(urlFoto);
+        if (urlFoto != null) perfil.setUrlFoto(urlFoto);
         
         return perfilRepository.save(perfil);
     }
 
-    // Buscar por ID
     public Optional<PerfilModel> buscarPorId(UUID id) {
         return perfilRepository.findById(id);
     }
 
-    // Listar
     public List<PerfilModel> listarPerfis() {
         return perfilRepository.findAll();
     }
 
-    // Deletar perfil
+    public List<PerfilModel> listarPerfisPorUsuarioId(UUID usuarioId) {
+        return perfilRepository.findByUsuarioId(usuarioId);
+    }
+
     public void deletarPerfil(UUID id) {
         perfilRepository.deleteById(id);
     }

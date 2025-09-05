@@ -10,9 +10,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.papagaiando.Papagaiando.model.BotaoPersonalizadoModel;
-import com.papagaiando.Papagaiando.model.PerfilModel;
+import com.papagaiando.Papagaiando.model.CategoriaModel;
 import com.papagaiando.Papagaiando.repository.BotaoPersonalizadoModelRepository;
-import com.papagaiando.Papagaiando.repository.PerfilRepository;
+import com.papagaiando.Papagaiando.repository.CategoriaRepository;
 
 @Service
 public class BotaoPersonalizadoService {
@@ -21,55 +21,48 @@ public class BotaoPersonalizadoService {
     private BotaoPersonalizadoModelRepository botaoRepository;
 
     @Autowired
-    private PerfilRepository perfilRepository;
+    private CategoriaRepository categoriaRepository;
 
-   
-       public BotaoPersonalizadoModel criarBotaoPorPerfilId(String nome, String urlImagem, String urlAudio, UUID perfilId) {
-   
-    if (!perfilRepository.existsById(perfilId)) {
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Perfil com ID " + perfilId + " não encontrado");
-    }
-    
-    PerfilModel perfil = perfilRepository.getReferenceById(perfilId); 
-    return botaoRepository.save(new BotaoPersonalizadoModel(nome, urlImagem, urlAudio, perfil));
-}
-
-    public List<BotaoPersonalizadoModel> listarPorPerfilId(UUID perfilId) {
-        if (!perfilRepository.existsById(perfilId)) {
-            throw new RuntimeException("Perfil não encontrado");
+    public BotaoPersonalizadoModel criarBotaoPorCategoriaId(String nome, String urlImagem, String urlAudio, UUID categoriaId) {
+        if (!categoriaRepository.existsById(categoriaId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Categoria com ID " + categoriaId + " não encontrada");
         }
-         return botaoRepository.findByPerfilId(perfilId);
+        
+        CategoriaModel categoria = categoriaRepository.getReferenceById(categoriaId);
+        return botaoRepository.save(new BotaoPersonalizadoModel(nome, urlImagem, urlAudio, categoria));
     }
 
-    // Buscar botões de um perfil por nome
-    public List<BotaoPersonalizadoModel> buscarPorNomeId(UUID perfilId, String nome) {
-        Optional<PerfilModel> perfilOpt = perfilRepository.findById(perfilId);
-        return perfilOpt.map(p -> botaoRepository.findByPerfilAndNomeContainingIgnoreCase(p, nome)).orElse(List.of());
+    public List<BotaoPersonalizadoModel> listarPorCategoriaId(UUID categoriaId) {
+        if (!categoriaRepository.existsById(categoriaId)) {
+            throw new RuntimeException("Categoria não encontrada");
+        }
+        return botaoRepository.findByCategoriaId(categoriaId);
     }
 
-    // Buscar botão por ID
+    public List<BotaoPersonalizadoModel> buscarPorNomeCategoriaId(UUID categoriaId, String nome) {
+        Optional<CategoriaModel> categoriaOpt = categoriaRepository.findById(categoriaId);
+        return categoriaOpt.map(c -> botaoRepository.findByCategoriaAndNomeContainingIgnoreCase(c, nome))
+                          .orElse(List.of());
+    }
+
     public Optional<BotaoPersonalizadoModel> buscarPorId(UUID id) {
         return botaoRepository.findById(id);
     }
 
-    // Deletar botão
     public void deletarBotao(UUID id) {
         botaoRepository.deleteById(id);
     }
 
     public BotaoPersonalizadoModel atualizarBotaoPersonalizado(
-    UUID id, 
-    String nome, 
-    String urlImagem, 
-    String urlAudio
-) {
-    BotaoPersonalizadoModel botao = buscarPorId(id).orElseThrow(() -> 
-        new RuntimeException("Botão personalizado não encontrado"));
-    
-    if (nome != null) botao.setNome(nome);
-    if (urlImagem != null) botao.setUrlImagem(urlImagem);
-    if (urlAudio != null) botao.setUrlAudio(urlAudio);
-    
-    return botaoRepository.save(botao);
-}
+        UUID id, String nome, String urlImagem, String urlAudio
+    ) {
+        BotaoPersonalizadoModel botao = buscarPorId(id).orElseThrow(() -> 
+            new RuntimeException("Botão personalizado não encontrado"));
+        
+        if (nome != null) botao.setNome(nome);
+        if (urlImagem != null) botao.setUrlImagem(urlImagem);
+        if (urlAudio != null) botao.setUrlAudio(urlAudio);
+        
+        return botaoRepository.save(botao);
+    }
 }

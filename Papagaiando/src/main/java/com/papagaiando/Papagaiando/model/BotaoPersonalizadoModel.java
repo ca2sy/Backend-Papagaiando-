@@ -31,18 +31,18 @@ public class BotaoPersonalizadoModel {
     private String urlAudio;  
 
     @ManyToOne
-    @JoinColumn(name = "perfil_id")
+    @JoinColumn(name = "categoria_id")
     @JsonBackReference
-    private PerfilModel perfil;
+    private CategoriaModel categoria;
 
     // Construtores
     public BotaoPersonalizadoModel() {}
 
-    public BotaoPersonalizadoModel(String nome, String urlImagem, String urlAudio, PerfilModel perfil) {
+    public BotaoPersonalizadoModel(String nome, String urlImagem, String urlAudio, CategoriaModel categoria) {
         this.nome = nome;
         this.urlImagem = urlImagem;
         this.urlAudio = urlAudio;
-        this.perfil = perfil;
+        this.categoria = categoria;
     }
 
     // Getters e Setters
@@ -78,14 +78,14 @@ public class BotaoPersonalizadoModel {
         this.urlAudio = urlAudio;
     }
 
-    public PerfilModel getPerfil() {
-        return perfil;
+    public CategoriaModel getCategoria() {
+        return categoria;
     }
 
-    public void setPerfil(PerfilModel perfil) {
-        this.perfil = perfil;
-        if (perfil != null && !perfil.getBotoesPersonalizados().contains(this)) {
-            perfil.getBotoesPersonalizados().add(this);
+    public void setCategoria(CategoriaModel categoria) {
+        this.categoria = categoria;
+        if (categoria != null && !categoria.getBotoesPersonalizados().contains(this)) {
+            categoria.getBotoesPersonalizados().add(this);
         }
     }
 }

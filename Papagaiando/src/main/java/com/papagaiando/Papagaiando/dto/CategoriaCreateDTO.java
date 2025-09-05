@@ -4,18 +4,15 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
 
-public class BotaoPersonalizadoCreateDTO {
+public class CategoriaCreateDTO {
     @NotBlank(message = "Nome é obrigatório")
     private String nome;
     
     @NotBlank(message = "URL da imagem é obrigatória")
     private String urlImagem;
     
-    @NotBlank(message = "URL do áudio é obrigatória")
-    private String urlAudio;  
-    
-    @NotNull(message = "ID da categoria é obrigatório")
-    private UUID categoriaId; // Mudado de perfilId para categoriaId
+    @NotNull(message = "ID do perfil é obrigatório")
+    private UUID perfilId;
 
     // Getters e Setters
     public String getNome() {
@@ -34,19 +31,11 @@ public class BotaoPersonalizadoCreateDTO {
         this.urlImagem = urlImagem;
     }
 
-    public String getUrlAudio() {
-        return urlAudio;
+    public UUID getPerfilId() {
+        return perfilId;
     }
 
-    public void setUrlAudio(String urlAudio) {
-        this.urlAudio = urlAudio;
-    }
-
-    public UUID getCategoriaId() {
-        return categoriaId;
-    }
-
-    public void setCategoriaId(UUID categoriaId) {
-        this.categoriaId = categoriaId;
+    public void setPerfilId(UUID perfilId) {
+        this.perfilId = perfilId;
     }
 }

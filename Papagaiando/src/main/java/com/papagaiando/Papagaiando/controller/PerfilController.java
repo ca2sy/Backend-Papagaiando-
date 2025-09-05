@@ -37,6 +37,12 @@ public class PerfilController {
         return ResponseEntity.ok(perfis);
     }
 
+    @GetMapping("/usuario/{usuarioId}")
+    public ResponseEntity<List<PerfilModel>> listarPerfisPorUsuario(@PathVariable UUID usuarioId) {
+        List<PerfilModel> perfis = perfilService.listarPerfisPorUsuarioId(usuarioId);
+        return ResponseEntity.ok(perfis);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<PerfilModel> buscarPorId(@PathVariable UUID id) {
         return perfilService.buscarPorId(id)
@@ -49,16 +55,12 @@ public class PerfilController {
             @PathVariable UUID id,
             @Valid @RequestBody PerfilUpdateDTO dto) {
         
-        return perfilService.buscarPorId(id)
-                .map(perfil -> {
-                    PerfilModel atualizado = perfilService.atualizarPerfil(
-                        id, 
-                        dto.getNome(), 
-                        dto.getUrlFoto()
-                    );
-                    return ResponseEntity.ok(atualizado);
-                })
-                .orElse(ResponseEntity.notFound().build());
+        PerfilModel atualizado = perfilService.atualizarPerfil(
+            id, 
+            dto.getNome(), 
+            dto.getUrlFoto()
+        );
+        return ResponseEntity.ok(atualizado);
     }
 
     @DeleteMapping("/{id}")
