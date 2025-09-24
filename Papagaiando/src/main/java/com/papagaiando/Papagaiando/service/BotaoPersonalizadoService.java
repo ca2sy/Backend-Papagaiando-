@@ -5,14 +5,13 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.papagaiando.Papagaiando.model.BotaoPersonalizadoModel;
 import com.papagaiando.Papagaiando.model.CategoriaModel;
 import com.papagaiando.Papagaiando.repository.BotaoPersonalizadoModelRepository;
 import com.papagaiando.Papagaiando.repository.CategoriaRepository;
+import com.papagaiando.Papagaiando.exception.ResourceNotFoundException;
 
 @Service
 public class BotaoPersonalizadoService {
@@ -22,47 +21,62 @@ public class BotaoPersonalizadoService {
 
     @Autowired
     private CategoriaRepository categoriaRepository;
+    
+    @Autowired
+    private AuthorizationService authorizationService;
 
-    public BotaoPersonalizadoModel criarBotaoPorCategoriaId(String nome, String urlImagem, String urlAudio, UUID categoriaId) {
-        if (!categoriaRepository.existsById(categoriaId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Categoria com ID " + categoriaId + " não encontrada");
-        }
+    public BotaoPersonalizadoModel criarBotaoPersonalizado(
+            String nome, String urlImagem, String urlAudio, UUID categoriaId, UUID usuarioLogado) {
         
-        CategoriaModel categoria = categoriaRepository.getReferenceById(categoriaId);
+        // Valida que a categoria pertence ao usuário logado
+        authorizationService.validarCriacaoBotaoPersonalizado(categoriaId, usuarioLogado);
+        
+        CategoriaModel categoria = categoriaRepository.findById(categoriaId)
+            .orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada"));
+        
         return botaoRepository.save(new BotaoPersonalizadoModel(nome, urlImagem, urlAudio, categoria));
     }
 
-    public List<BotaoPersonalizadoModel> listarPorCategoriaId(UUID categoriaId) {
-        if (!categoriaRepository.existsById(categoriaId)) {
-            throw new RuntimeException("Categoria não encontrada");
-        }
+    public List<BotaoPersonalizadoModel> listarPorCategoria(UUID categoriaId, UUID usuarioLogado) {
+        authorizationService.validarPropriedadeCategoria(categoriaId, usuarioLogado);
         return botaoRepository.findByCategoriaId(categoriaId);
     }
 
-    public List<BotaoPersonalizadoModel> buscarPorNomeCategoriaId(UUID categoriaId, String nome) {
-        Optional<CategoriaModel> categoriaOpt = categoriaRepository.findById(categoriaId);
-        return categoriaOpt.map(c -> botaoRepository.findByCategoriaAndNomeContainingIgnoreCase(c, nome))
-                          .orElse(List.of());
+    public List<BotaoPersonalizadoModel> buscarPorNomeCategoria(
+            UUID categoriaId, String nome, UUID usuarioLogado) {
+        
+        authorizationService.validarPropriedadeCategoria(categoriaId, usuarioLogado);
+        
+        CategoriaModel categoria = categoriaRepository.findById(categoriaId)
+            .orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada"));
+        
+        return botaoRepository.findByCategoriaAndNomeContainingIgnoreCase(categoria, nome);
     }
 
-    public Optional<BotaoPersonalizadoModel> buscarPorId(UUID id) {
-        return botaoRepository.findById(id);
-    }
-
-    public void deletarBotao(UUID id) {
-        botaoRepository.deleteById(id);
+    public BotaoPersonalizadoModel buscarPorId(UUID botaoId, UUID usuarioLogado) {
+        authorizationService.validarPropriedadeBotaoPersonalizado(botaoId, usuarioLogado);
+        
+        return botaoRepository.findById(botaoId)
+            .orElseThrow(() -> new ResourceNotFoundException("Botão personalizado não encontrado"));
     }
 
     public BotaoPersonalizadoModel atualizarBotaoPersonalizado(
-        UUID id, String nome, String urlImagem, String urlAudio
-    ) {
-        BotaoPersonalizadoModel botao = buscarPorId(id).orElseThrow(() -> 
-            new RuntimeException("Botão personalizado não encontrado"));
+            UUID botaoId, String nome, String urlImagem, String urlAudio, UUID usuarioLogado) {
         
-        if (nome != null) botao.setNome(nome);
-        if (urlImagem != null) botao.setUrlImagem(urlImagem);
-        if (urlAudio != null) botao.setUrlAudio(urlAudio);
+        authorizationService.validarPropriedadeBotaoPersonalizado(botaoId, usuarioLogado);
+        
+        BotaoPersonalizadoModel botao = botaoRepository.findById(botaoId)
+            .orElseThrow(() -> new ResourceNotFoundException("Botão personalizado não encontrado"));
+        
+        if (nome != null && !nome.isBlank()) botao.setNome(nome);
+        if (urlImagem != null && !urlImagem.isBlank()) botao.setUrlImagem(urlImagem);
+        if (urlAudio != null && !urlAudio.isBlank()) botao.setUrlAudio(urlAudio);
         
         return botaoRepository.save(botao);
+    }
+
+    public void deletarBotao(UUID botaoId, UUID usuarioLogado) {
+        authorizationService.validarPropriedadeBotaoPersonalizado(botaoId, usuarioLogado);
+        botaoRepository.deleteById(botaoId);
     }
 }

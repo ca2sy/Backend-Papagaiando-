@@ -4,6 +4,8 @@ import com.papagaiando.Papagaiando.dto.*;
 import com.papagaiando.Papagaiando.model.UsuarioModel;
 import com.papagaiando.Papagaiando.security.JwtUtil;
 import com.papagaiando.Papagaiando.service.UsuarioService;
+import com.papagaiando.Papagaiando.security.AuthUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,8 +23,12 @@ public class UsuarioController {
 
     @Autowired
     private UsuarioService usuarioService;
+    
     @Autowired
     private JwtUtil jwtUtil;
+    
+    @Autowired
+    private AuthUtil authUtil;
 
     @PostMapping
     public ResponseEntity<?> criarUsuario(@Valid @RequestBody UsuarioCreateDTO usuarioDTO) {
@@ -44,26 +50,32 @@ public class UsuarioController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    // Endpoint para buscar dados do próprio usuário logado
+    @GetMapping("/me")
+    public ResponseEntity<UsuarioModel> buscarMeuPerfil(HttpServletRequest request) {
+        UUID usuarioLogado = authUtil.extractUserIdFromRequest(request);
+        return usuarioService.buscarPorId(usuarioLogado)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    // Apenas admin pode listar todos os usuários (se necessário)
     @GetMapping
     public ResponseEntity<List<UsuarioModel>> listarUsuarios() {
         List<UsuarioModel> usuarios = usuarioService.listarUsuarios();
         return ResponseEntity.ok(usuarios);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<UsuarioModel> buscarPorId(@PathVariable("id") UUID id) {
-        return usuarioService.buscarPorId(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<UsuarioModel> atualizarUsuario(
-            @PathVariable UUID id,
-            @Valid @RequestBody UsuarioUpdateDTO usuarioDTO) {
+    // Usuário só pode atualizar seus próprios dados
+    @PutMapping("/me")
+    public ResponseEntity<UsuarioModel> atualizarMeuPerfil(
+            @Valid @RequestBody UsuarioUpdateDTO usuarioDTO,
+            HttpServletRequest request) {
+        
+        UUID usuarioLogado = authUtil.extractUserIdFromRequest(request);
         
         UsuarioModel atualizado = usuarioService.atualizarUsuario(
-            id,
+            usuarioLogado,
             usuarioDTO.getNome(),
             usuarioDTO.getEmail(),
             usuarioDTO.getSenha()
@@ -72,9 +84,11 @@ public class UsuarioController {
         return ResponseEntity.ok(atualizado);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletarUsuario(@PathVariable UUID id) {
-        usuarioService.deletarUsuario(id);
+    // Usuário só pode deletar sua própria conta
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> deletarMinhaConta(HttpServletRequest request) {
+        UUID usuarioLogado = authUtil.extractUserIdFromRequest(request);
+        usuarioService.deletarUsuario(usuarioLogado);
         return ResponseEntity.noContent().build();
     }
 

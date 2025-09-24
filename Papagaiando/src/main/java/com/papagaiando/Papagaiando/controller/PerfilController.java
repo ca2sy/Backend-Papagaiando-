@@ -4,6 +4,8 @@ import com.papagaiando.Papagaiando.dto.PerfilCreateDTO;
 import com.papagaiando.Papagaiando.dto.PerfilUpdateDTO;
 import com.papagaiando.Papagaiando.model.PerfilModel;
 import com.papagaiando.Papagaiando.service.PerfilService;
+import com.papagaiando.Papagaiando.security.AuthUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,53 +21,71 @@ public class PerfilController {
 
     @Autowired
     private PerfilService perfilService;
+    
+    @Autowired
+    private AuthUtil authUtil;
 
     @PostMapping
     public ResponseEntity<PerfilModel> criarPerfil(
-            @Valid @RequestBody PerfilCreateDTO dto) {
-        PerfilModel perfilCriado = perfilService.criarPerfilPorId(
+            @Valid @RequestBody PerfilCreateDTO dto,
+            HttpServletRequest request) {
+        
+        UUID usuarioLogado = authUtil.extractUserIdFromRequest(request);
+        
+        // Verifica se está tentando criar perfil para si mesmo
+        if (!dto.getUsuarioId().equals(usuarioLogado)) {
+            throw new RuntimeException("Você só pode criar perfis para sua própria conta");
+        }
+        
+        PerfilModel perfilCriado = perfilService.criarPerfil(
             dto.getNome(),
             dto.getUrlFoto(),
-            dto.getUsuarioId()
+            usuarioLogado // Usa o ID do token, não do DTO
         );
         return ResponseEntity.status(HttpStatus.CREATED).body(perfilCriado);
     }
 
-    @GetMapping
-    public ResponseEntity<List<PerfilModel>> listarPerfis() {
-        List<PerfilModel> perfis = perfilService.listarPerfis();
-        return ResponseEntity.ok(perfis);
-    }
-
-    @GetMapping("/usuario/{usuarioId}")
-    public ResponseEntity<List<PerfilModel>> listarPerfisPorUsuario(@PathVariable UUID usuarioId) {
-        List<PerfilModel> perfis = perfilService.listarPerfisPorUsuarioId(usuarioId);
+    @GetMapping("/me")
+    public ResponseEntity<List<PerfilModel>> listarMeusPerfis(HttpServletRequest request) {
+        UUID usuarioLogado = authUtil.extractUserIdFromRequest(request);
+        List<PerfilModel> perfis = perfilService.listarPerfisPorUsuario(usuarioLogado);
         return ResponseEntity.ok(perfis);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PerfilModel> buscarPorId(@PathVariable UUID id) {
-        return perfilService.buscarPorId(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<PerfilModel> buscarPorId(
+            @PathVariable UUID id,
+            HttpServletRequest request) {
+        
+        UUID usuarioLogado = authUtil.extractUserIdFromRequest(request);
+        PerfilModel perfil = perfilService.buscarPorId(id, usuarioLogado);
+        return ResponseEntity.ok(perfil);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<PerfilModel> atualizarPerfil(
             @PathVariable UUID id,
-            @Valid @RequestBody PerfilUpdateDTO dto) {
+            @Valid @RequestBody PerfilUpdateDTO dto,
+            HttpServletRequest request) {
+        
+        UUID usuarioLogado = authUtil.extractUserIdFromRequest(request);
         
         PerfilModel atualizado = perfilService.atualizarPerfil(
             id, 
             dto.getNome(), 
-            dto.getUrlFoto()
+            dto.getUrlFoto(),
+            usuarioLogado
         );
         return ResponseEntity.ok(atualizado);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletarPerfil(@PathVariable UUID id) {
-        perfilService.deletarPerfil(id);
+    public ResponseEntity<Void> deletarPerfil(
+            @PathVariable UUID id,
+            HttpServletRequest request) {
+        
+        UUID usuarioLogado = authUtil.extractUserIdFromRequest(request);
+        perfilService.deletarPerfil(id, usuarioLogado);
         return ResponseEntity.noContent().build();
     }
 }

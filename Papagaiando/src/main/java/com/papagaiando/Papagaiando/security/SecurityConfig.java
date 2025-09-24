@@ -32,11 +32,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(
             "http://localhost:5173",
-            "http://localhost:5173/",
-            "http://localhost:5174",
-            "https://seu-frontend.vercel.app", // substituir pelo domínio real
-            "https://*.vercel.app",
-            "https://*.netlify.app"
+            "http://localhost:5173/"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));

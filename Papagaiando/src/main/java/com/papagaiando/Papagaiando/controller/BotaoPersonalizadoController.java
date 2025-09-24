@@ -4,6 +4,8 @@ import com.papagaiando.Papagaiando.dto.BotaoPersonalizadoCreateDTO;
 import com.papagaiando.Papagaiando.dto.BotaoPersonalizadoUpdateDTO;
 import com.papagaiando.Papagaiando.model.BotaoPersonalizadoModel;
 import com.papagaiando.Papagaiando.service.BotaoPersonalizadoService;
+import com.papagaiando.Papagaiando.security.AuthUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,16 +21,23 @@ public class BotaoPersonalizadoController {
 
     @Autowired
     private BotaoPersonalizadoService botaoService;
+    
+    @Autowired
+    private AuthUtil authUtil;
 
     @PostMapping
     public ResponseEntity<BotaoPersonalizadoModel> criarBotao(
-            @Valid @RequestBody BotaoPersonalizadoCreateDTO dto) {
+            @Valid @RequestBody BotaoPersonalizadoCreateDTO dto,
+            HttpServletRequest request) {
         
-        BotaoPersonalizadoModel criado = botaoService.criarBotaoPorCategoriaId(
+        UUID usuarioLogado = authUtil.extractUserIdFromRequest(request);
+        
+        BotaoPersonalizadoModel criado = botaoService.criarBotaoPersonalizado(
             dto.getNome(),
             dto.getUrlImagem(),
             dto.getUrlAudio(),
-            dto.getCategoriaId() // Mudado de perfilId para categoriaId
+            dto.getCategoriaId(),
+            usuarioLogado
         );
         
         return ResponseEntity.status(HttpStatus.CREATED).body(criado);
@@ -36,53 +45,68 @@ public class BotaoPersonalizadoController {
 
     @GetMapping("/categoria/{categoriaId}")
     public ResponseEntity<List<BotaoPersonalizadoModel>> listarPorCategoria(
-            @PathVariable UUID categoriaId) {
+            @PathVariable UUID categoriaId,
+            HttpServletRequest request) {
         
-        List<BotaoPersonalizadoModel> botoes = botaoService.listarPorCategoriaId(categoriaId);
+        UUID usuarioLogado = authUtil.extractUserIdFromRequest(request);
+        
+        List<BotaoPersonalizadoModel> botoes = botaoService.listarPorCategoria(categoriaId, usuarioLogado);
         return ResponseEntity.ok(botoes);
     }
 
     @GetMapping("/categoria/{categoriaId}/buscar")
     public ResponseEntity<List<BotaoPersonalizadoModel>> buscarPorNome(
             @PathVariable UUID categoriaId,
-            @RequestParam String nome) {
+            @RequestParam String nome,
+            HttpServletRequest request) {
         
         if (nome == null || nome.trim().isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
         
-        List<BotaoPersonalizadoModel> botoes = botaoService.buscarPorNomeCategoriaId(categoriaId, nome);
+        UUID usuarioLogado = authUtil.extractUserIdFromRequest(request);
+        
+        List<BotaoPersonalizadoModel> botoes = botaoService.buscarPorNomeCategoria(categoriaId, nome, usuarioLogado);
         return ResponseEntity.ok(botoes);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<BotaoPersonalizadoModel> buscarPorId(
-            @PathVariable UUID id) {
+            @PathVariable UUID id,
+            HttpServletRequest request) {
         
-        return botaoService.buscarPorId(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletarBotao(
-            @PathVariable UUID id) {
+        UUID usuarioLogado = authUtil.extractUserIdFromRequest(request);
         
-        botaoService.deletarBotao(id);
-        return ResponseEntity.noContent().build();
+        BotaoPersonalizadoModel botao = botaoService.buscarPorId(id, usuarioLogado);
+        return ResponseEntity.ok(botao);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<BotaoPersonalizadoModel> atualizarBotaoPersonalizado(
         @PathVariable UUID id,
-        @Valid @RequestBody BotaoPersonalizadoUpdateDTO dto
+        @Valid @RequestBody BotaoPersonalizadoUpdateDTO dto,
+        HttpServletRequest request
     ) {
+        UUID usuarioLogado = authUtil.extractUserIdFromRequest(request);
+        
         BotaoPersonalizadoModel botaoAtualizado = botaoService.atualizarBotaoPersonalizado(
             id,
             dto.getNome(),
             dto.getUrlImagem(),
-            dto.getUrlAudio()
+            dto.getUrlAudio(),
+            usuarioLogado
         );
         return ResponseEntity.ok(botaoAtualizado);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletarBotao(
+            @PathVariable UUID id,
+            HttpServletRequest request) {
+        
+        UUID usuarioLogado = authUtil.extractUserIdFromRequest(request);
+        
+        botaoService.deletarBotao(id, usuarioLogado);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -4,6 +4,8 @@ import com.papagaiando.Papagaiando.dto.CategoriaCreateDTO;
 import com.papagaiando.Papagaiando.dto.CategoriaUpdateDTO;
 import com.papagaiando.Papagaiando.model.CategoriaModel;
 import com.papagaiando.Papagaiando.service.CategoriaService;
+import com.papagaiando.Papagaiando.security.AuthUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,70 +21,90 @@ public class CategoriaController {
 
     @Autowired
     private CategoriaService categoriaService;
+    
+    @Autowired
+    private AuthUtil authUtil;
 
     @PostMapping
-    public ResponseEntity<CategoriaModel> criarCategoria(@Valid @RequestBody CategoriaCreateDTO dto) {
+    public ResponseEntity<CategoriaModel> criarCategoria(
+            @Valid @RequestBody CategoriaCreateDTO dto,
+            HttpServletRequest request) {
+        
+        UUID usuarioLogado = authUtil.extractUserIdFromRequest(request);
+        
         CategoriaModel categoriaCriada = categoriaService.criarCategoria(
             dto.getNome(),
             dto.getUrlImagem(),
-            dto.getPerfilId()
+            dto.getPerfilId(),
+            usuarioLogado
         );
         return ResponseEntity.status(HttpStatus.CREATED).body(categoriaCriada);
     }
 
     @GetMapping("/perfil/{perfilId}")
-    public ResponseEntity<List<CategoriaModel>> listarPorPerfil(@PathVariable UUID perfilId) {
-        List<CategoriaModel> categorias = categoriaService.listarPorPerfilId(perfilId);
+    public ResponseEntity<List<CategoriaModel>> listarPorPerfil(
+            @PathVariable UUID perfilId,
+            HttpServletRequest request) {
+        
+        UUID usuarioLogado = authUtil.extractUserIdFromRequest(request);
+        
+        List<CategoriaModel> categorias = categoriaService.listarPorPerfil(perfilId, usuarioLogado);
         return ResponseEntity.ok(categorias);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CategoriaModel> buscarPorId(@PathVariable UUID id) {
-        return categoriaService.buscarPorId(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    @GetMapping("/buscar")
-    public ResponseEntity<List<CategoriaModel>> buscarPorNome(@RequestParam String nome) {
-        if (nome == null || nome.trim().isEmpty()) {
-            return ResponseEntity.badRequest().build();
-        }
-        return ResponseEntity.ok(categoriaService.buscarPorNome(nome));
+    public ResponseEntity<CategoriaModel> buscarPorId(
+            @PathVariable UUID id,
+            HttpServletRequest request) {
+        
+        UUID usuarioLogado = authUtil.extractUserIdFromRequest(request);
+        
+        CategoriaModel categoria = categoriaService.buscarPorId(id, usuarioLogado);
+        return ResponseEntity.ok(categoria);
     }
 
     @GetMapping("/perfil/{perfilId}/buscar")
     public ResponseEntity<List<CategoriaModel>> buscarPorNomePerfil(
             @PathVariable UUID perfilId,
-            @RequestParam String nome) {
+            @RequestParam String nome,
+            HttpServletRequest request) {
         
         if (nome == null || nome.trim().isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
         
-        List<CategoriaModel> categorias = categoriaService.buscarPorNomePerfilId(perfilId, nome);
+        UUID usuarioLogado = authUtil.extractUserIdFromRequest(request);
+        
+        List<CategoriaModel> categorias = categoriaService.buscarPorNomePerfil(perfilId, nome, usuarioLogado);
         return ResponseEntity.ok(categorias);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<CategoriaModel> atualizarCategoria(
             @PathVariable UUID id,
-            @Valid @RequestBody CategoriaUpdateDTO dto) {
+            @Valid @RequestBody CategoriaUpdateDTO dto,
+            HttpServletRequest request) {
+        
+        UUID usuarioLogado = authUtil.extractUserIdFromRequest(request);
         
         CategoriaModel atualizada = categoriaService.atualizarCategoria(
             id,
             dto.getNome(),
-            dto.getUrlImagem()
+            dto.getUrlImagem(),
+            usuarioLogado
         );
         
         return ResponseEntity.ok(atualizada);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletarCategoria(@PathVariable UUID id) {
-        categoriaService.deletarCategoria(id);
+    public ResponseEntity<Void> deletarCategoria(
+            @PathVariable UUID id,
+            HttpServletRequest request) {
+        
+        UUID usuarioLogado = authUtil.extractUserIdFromRequest(request);
+        
+        categoriaService.deletarCategoria(id, usuarioLogado);
         return ResponseEntity.noContent().build();
     }
-
-
 }
