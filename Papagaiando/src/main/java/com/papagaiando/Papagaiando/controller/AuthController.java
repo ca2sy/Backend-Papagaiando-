@@ -9,6 +9,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+
 
 import java.util.HashMap;
 import java.util.Map;
@@ -55,4 +59,31 @@ public class AuthController {
             return ResponseEntity.status(401).body(errorResponse);
         }
     }
+
+    
+@PostMapping("/verificar-senha")
+public ResponseEntity<?> verificarSenha(@RequestBody Map<String, String> body) {
+    String senhaFornecida = body.get("senha");
+
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String emailUsuario = authentication.getName(); // 
+    UsuarioModel usuario = usuarioService.buscarPorEmail(emailUsuario);
+
+    boolean senhaCorreta = false;
+    if (usuario != null) {
+        senhaCorreta = passwordEncoder.matches(senhaFornecida, usuario.getSenha());
+    }
+
+    Map<String, Object> response = new HashMap<>();
+    response.put("valido", senhaCorreta);
+
+    if (senhaCorreta) {
+        return ResponseEntity.ok(response);
+    } else {
+        response.put("message", "Senha incorreta");
+        return ResponseEntity.status(401).body(response);
+    }
 }
+
+}
+

@@ -68,6 +68,11 @@ public UsuarioModel atualizarUsuario(UUID id, String nome, String email, String 
         return usuarioRepository.findById(id);
     }
 
+    public UsuarioModel buscarPorEmail(String email) {
+    return usuarioRepository.findByEmail(email);
+}
+
+
     // Deletar usuário
     public void deletarUsuario(UUID id) {
         usuarioRepository.deleteById(id);
