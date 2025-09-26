@@ -25,15 +25,21 @@ public class CategoriaService {
     @Autowired
     private AuthorizationService authorizationService;
 
-    public CategoriaModel criarCategoria(String nome, String urlImagem, UUID perfilId, UUID usuarioLogado) {
-        // Valida que o perfil pertence ao usuário logado
-        authorizationService.validarCriacaoCategoria(perfilId, usuarioLogado);
-        
-        PerfilModel perfil = perfilRepository.findById(perfilId)
-            .orElseThrow(() -> new ResourceNotFoundException("Perfil não encontrado"));
-        
-        return categoriaRepository.save(new CategoriaModel(nome, urlImagem, perfil));
-    }
+public CategoriaModel criarCategoria(String nome, String urlImagem, UUID perfilId, UUID usuarioLogado) {
+    // Valida que o perfil pertence ao usuário logado
+    authorizationService.validarCriacaoCategoria(perfilId, usuarioLogado);
+
+    PerfilModel perfil = perfilRepository.findById(perfilId)
+        .orElseThrow(() -> new ResourceNotFoundException("Perfil não encontrado"));
+
+    CategoriaModel categoria = new CategoriaModel(nome, urlImagem, perfil);
+
+    // Aqui define que toda categoria criada via front é personalizada
+    categoria.setPadrao(false); 
+
+    return categoriaRepository.save(categoria);
+}
+
 
     public List<CategoriaModel> listarPorPerfil(UUID perfilId, UUID usuarioLogado) {
         // Valida que o perfil pertence ao usuário logado
@@ -71,4 +77,28 @@ public class CategoriaService {
         authorizationService.validarPropriedadeCategoria(categoriaId, usuarioLogado);
         categoriaRepository.deleteById(categoriaId);
     }
+
+    public List<CategoriaModel> listarCategoriasPadrao() {
+    return categoriaRepository.findAll().stream()
+            .filter(CategoriaModel::isPadrao)
+            .toList();
+}
+    public List<CategoriaModel> listarCategoriasPerfilComPadrao(UUID perfilId, UUID usuarioLogado) {
+    // Valida que o perfil pertence ao usuário logado
+    authorizationService.validarPropriedadePerfil(perfilId, usuarioLogado);
+
+    // Busca categorias do perfil
+    List<CategoriaModel> perfilCategorias = categoriaRepository.findByPerfilId(perfilId);
+
+    // Busca categorias padrão
+    List<CategoriaModel> padraoCategorias = categoriaRepository.findAll()
+            .stream()
+            .filter(CategoriaModel::isPadrao)
+            .toList();
+
+    // Junta as duas listas
+    perfilCategorias.addAll(padraoCategorias);
+
+    return perfilCategorias;
+}
 }

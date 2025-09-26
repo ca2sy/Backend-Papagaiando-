@@ -34,6 +34,9 @@ public class CategoriaModel {
     @Column(nullable = false)
     private String urlImagem;
 
+        @Column(nullable = false)
+        private boolean padrao = true;
+
     // Categoria pode ter botões padrão
     @ManyToMany
     @JoinTable(
@@ -127,5 +130,13 @@ public class CategoriaModel {
         if (botao.getCategoria() != this) {
             botao.setCategoria(this);
         }
+    }
+
+    public boolean isPadrao() {
+        return padrao;
+    }
+
+    public void setPadrao(boolean padrao) {
+        this.padrao = padrao;
     }
 }

@@ -41,16 +41,22 @@ public class CategoriaController {
         return ResponseEntity.status(HttpStatus.CREATED).body(categoriaCriada);
     }
 
-    @GetMapping("/perfil/{perfilId}")
-    public ResponseEntity<List<CategoriaModel>> listarPorPerfil(
-            @PathVariable UUID perfilId,
-            HttpServletRequest request) {
-        
-        UUID usuarioLogado = authUtil.extractUserIdFromRequest(request);
-        
-        List<CategoriaModel> categorias = categoriaService.listarPorPerfil(perfilId, usuarioLogado);
-        return ResponseEntity.ok(categorias);
-    }
+
+    @GetMapping("/padrao")
+public ResponseEntity<List<CategoriaModel>> listarCategoriasPadrao() {
+    List<CategoriaModel> padrao = categoriaService.listarCategoriasPadrao();
+    return ResponseEntity.ok(padrao);
+}
+
+
+@GetMapping("/perfil/{perfilId}")
+public ResponseEntity<List<CategoriaModel>> listarCategoriasPerfil(@PathVariable UUID perfilId,
+                                                                  HttpServletRequest request) {
+    UUID usuarioLogado = authUtil.extractUserIdFromRequest(request);
+
+    List<CategoriaModel> categorias = categoriaService.listarCategoriasPerfilComPadrao(perfilId, usuarioLogado);
+    return ResponseEntity.ok(categorias);
+}
 
     @GetMapping("/{id}")
     public ResponseEntity<CategoriaModel> buscarPorId(
