@@ -26,32 +26,46 @@ public class BotaoPersonalizadoService {
     private AuthorizationService authorizationService;
 
     public BotaoPersonalizadoModel criarBotaoPersonalizado(
-            String nome, String urlImagem, String urlAudio, UUID categoriaId, UUID usuarioLogado) {
-        
-        // Valida que a categoria pertence ao usuário logado
+        String nome, String urlImagem, String urlAudio, UUID categoriaId, UUID usuarioLogado) {
+    
+
+    CategoriaModel categoria = categoriaRepository.findById(categoriaId)
+        .orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada"));
+    
+
+    if (!categoria.isPadrao()) {
         authorizationService.validarCriacaoBotaoPersonalizado(categoriaId, usuarioLogado);
-        
-        CategoriaModel categoria = categoriaRepository.findById(categoriaId)
-            .orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada"));
-        
-        return botaoRepository.save(new BotaoPersonalizadoModel(nome, urlImagem, urlAudio, categoria));
     }
+
+    
+    return botaoRepository.save(new BotaoPersonalizadoModel(nome, urlImagem, urlAudio, categoria));
+}
 
     public List<BotaoPersonalizadoModel> listarPorCategoria(UUID categoriaId, UUID usuarioLogado) {
-        authorizationService.validarPropriedadeCategoria(categoriaId, usuarioLogado);
-        return botaoRepository.findByCategoriaId(categoriaId);
-    }
 
-    public List<BotaoPersonalizadoModel> buscarPorNomeCategoria(
-            UUID categoriaId, String nome, UUID usuarioLogado) {
-        
+    CategoriaModel categoria = categoriaRepository.findById(categoriaId)
+        .orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada"));
+    
+    if (!categoria.isPadrao()) {
         authorizationService.validarPropriedadeCategoria(categoriaId, usuarioLogado);
-        
-        CategoriaModel categoria = categoriaRepository.findById(categoriaId)
-            .orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada"));
-        
-        return botaoRepository.findByCategoriaAndNomeContainingIgnoreCase(categoria, nome);
     }
+   
+    
+    return botaoRepository.findByCategoriaId(categoriaId);
+}
+
+   public List<BotaoPersonalizadoModel> buscarPorNomeCategoria(
+        UUID categoriaId, String nome, UUID usuarioLogado) {
+
+    CategoriaModel categoria = categoriaRepository.findById(categoriaId)
+        .orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada"));
+    
+    if (!categoria.isPadrao()) {
+        authorizationService.validarPropriedadeCategoria(categoriaId, usuarioLogado);
+    }
+    
+    return botaoRepository.findByCategoriaAndNomeContainingIgnoreCase(categoria, nome);
+}
 
     public BotaoPersonalizadoModel buscarPorId(UUID botaoId, UUID usuarioLogado) {
         authorizationService.validarPropriedadeBotaoPersonalizado(botaoId, usuarioLogado);

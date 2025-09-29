@@ -52,6 +52,7 @@ public class BotaoController {
         return ResponseEntity.ok(botaoService.buscarPorNome(nome));
     }
 
+    
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletarBotao(@PathVariable UUID id) {
         botaoService.deletarBotao(id);

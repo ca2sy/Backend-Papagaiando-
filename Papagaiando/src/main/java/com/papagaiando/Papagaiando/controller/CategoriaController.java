@@ -2,6 +2,8 @@ package com.papagaiando.Papagaiando.controller;
 
 import com.papagaiando.Papagaiando.dto.CategoriaCreateDTO;
 import com.papagaiando.Papagaiando.dto.CategoriaUpdateDTO;
+import com.papagaiando.Papagaiando.exception.ResourceNotFoundException;
+import com.papagaiando.Papagaiando.model.BotaoModel;
 import com.papagaiando.Papagaiando.model.CategoriaModel;
 import com.papagaiando.Papagaiando.service.CategoriaService;
 import com.papagaiando.Papagaiando.security.AuthUtil;
@@ -41,6 +43,15 @@ public class CategoriaController {
         return ResponseEntity.status(HttpStatus.CREATED).body(categoriaCriada);
     }
 
+@GetMapping("/{categoriaId}/botoes-padrao")
+public ResponseEntity<List<BotaoModel>> getBotoesPadraoDaCategoria(@PathVariable UUID categoriaId) {
+    try {
+        List<BotaoModel> botoes = categoriaService.getBotoesPadraoDaCategoria(categoriaId);
+        return ResponseEntity.ok(botoes);
+    } catch (ResourceNotFoundException e) {
+        return ResponseEntity.notFound().build();
+    }
+}
 
     @GetMapping("/padrao")
 public ResponseEntity<List<CategoriaModel>> listarCategoriasPadrao() {

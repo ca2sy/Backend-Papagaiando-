@@ -1,5 +1,6 @@
 package com.papagaiando.Papagaiando.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -7,6 +8,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.papagaiando.Papagaiando.model.BotaoModel;
 import com.papagaiando.Papagaiando.model.CategoriaModel;
 import com.papagaiando.Papagaiando.model.PerfilModel;
 import com.papagaiando.Papagaiando.repository.CategoriaRepository;
@@ -100,5 +102,16 @@ public CategoriaModel criarCategoria(String nome, String urlImagem, UUID perfilI
     perfilCategorias.addAll(padraoCategorias);
 
     return perfilCategorias;
+}
+
+public List<BotaoModel> getBotoesPadraoDaCategoria(UUID categoriaId) {
+    CategoriaModel categoria = categoriaRepository.findById(categoriaId)
+        .orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada"));
+    
+    if (!categoria.isPadrao()) {
+        throw new IllegalArgumentException("Esta não é uma categoria padrão");
+    }
+    
+    return new ArrayList<>(categoria.getBotoesPadrao());
 }
 }
