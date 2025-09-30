@@ -14,8 +14,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -34,22 +32,13 @@ public class CategoriaModel {
     @Column(nullable = false)
     private String urlImagem;
 
-        @Column(nullable = false)
-        private boolean padrao = true;
+    @Column(nullable = false)
+    private boolean padrao = true;
 
-    // Categoria pode ter botões padrão
-    @ManyToMany
-    @JoinTable(
-        name = "categoria_botao_padrao",
-        joinColumns = @JoinColumn(name = "categoria_id"),
-        inverseJoinColumns = @JoinColumn(name = "botao_id")
-    )
-    private Set<BotaoModel> botoesPadrao = new HashSet<>();
-
-    // Categoria pode ter botões personalizados
+    // AGORA SÓ TEM UMA LISTA DE BOTÕES!
     @OneToMany(mappedBy = "categoria", fetch = FetchType.LAZY)
     @JsonManagedReference
-    private Set<BotaoPersonalizadoModel> botoesPersonalizados = new HashSet<>();
+    private Set<BotaoModel> botoes = new HashSet<>();
 
     @ManyToOne
     @JoinColumn(name = "perfil_id")
@@ -90,20 +79,12 @@ public class CategoriaModel {
         this.urlImagem = urlImagem;
     }
 
-    public Set<BotaoModel> getBotoesPadrao() {
-        return botoesPadrao;
+    public Set<BotaoModel> getBotoes() {
+        return botoes;
     }
 
-    public void setBotoesPadrao(Set<BotaoModel> botoesPadrao) {
-        this.botoesPadrao = botoesPadrao;
-    }
-
-    public Set<BotaoPersonalizadoModel> getBotoesPersonalizados() {
-        return botoesPersonalizados;
-    }
-
-    public void setBotoesPersonalizados(Set<BotaoPersonalizadoModel> botoesPersonalizados) {
-        this.botoesPersonalizados = botoesPersonalizados;
+    public void setBotoes(Set<BotaoModel> botoes) {
+        this.botoes = botoes;
     }
 
     public PerfilModel getPerfil() {
@@ -117,26 +98,41 @@ public class CategoriaModel {
         }
     }
 
-    // Métodos auxiliares
-    public void adicionarBotaoPadrao(BotaoModel botao) {
-        this.botoesPadrao.add(botao);
-        if (!botao.getCategorias().contains(this)) {
-            botao.getCategorias().add(this);
-        }
-    }
-
-    public void adicionarBotaoPersonalizado(BotaoPersonalizadoModel botao) {
-        this.botoesPersonalizados.add(botao);
-        if (botao.getCategoria() != this) {
-            botao.setCategoria(this);
-        }
-    }
-
     public boolean isPadrao() {
         return padrao;
     }
 
     public void setPadrao(boolean padrao) {
         this.padrao = padrao;
+    }
+
+    // Métodos auxiliares
+    public void adicionarBotao(BotaoModel botao) {
+        this.botoes.add(botao);
+        if (botao.getCategoria() != this) {
+            botao.setCategoria(this);
+        }
+    }
+
+    // Método para obter apenas botões padrão
+    public Set<BotaoModel> getBotoesPadrao() {
+        Set<BotaoModel> botoesPadrao = new HashSet<>();
+        for (BotaoModel botao : this.botoes) {
+            if (botao.isPadrao()) {
+                botoesPadrao.add(botao);
+            }
+        }
+        return botoesPadrao;
+    }
+
+    // Método para obter apenas botões personalizados
+    public Set<BotaoModel> getBotoesPersonalizados() {
+        Set<BotaoModel> botoesPersonalizados = new HashSet<>();
+        for (BotaoModel botao : this.botoes) {
+            if (!botao.isPadrao()) {
+                botoesPersonalizados.add(botao);
+            }
+        }
+        return botoesPersonalizados;
     }
 }

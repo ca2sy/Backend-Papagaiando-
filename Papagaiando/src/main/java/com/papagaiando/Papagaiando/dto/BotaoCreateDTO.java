@@ -1,6 +1,8 @@
 package com.papagaiando.Papagaiando.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import java.util.UUID;
 
 public class BotaoCreateDTO {
     @NotBlank(message = "Nome é obrigatório")
@@ -10,7 +12,10 @@ public class BotaoCreateDTO {
     private String urlImagem;
     
     @NotBlank(message = "URL do áudio é obrigatória")
-    private String urlAudio;
+    private String urlAudio;  
+    
+    @NotNull(message = "ID da categoria é obrigatório")
+    private UUID categoriaId;
 
     // Getters e Setters
     public String getNome() {
@@ -35,5 +40,13 @@ public class BotaoCreateDTO {
 
     public void setUrlAudio(String urlAudio) {
         this.urlAudio = urlAudio;
+    }
+
+    public UUID getCategoriaId() {
+        return categoriaId;
+    }
+
+    public void setCategoriaId(UUID categoriaId) {
+        this.categoriaId = categoriaId;
     }
 }

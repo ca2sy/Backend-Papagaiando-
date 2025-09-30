@@ -1,17 +1,17 @@
 package com.papagaiando.Papagaiando.model;
 
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.ManyToMany;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -31,28 +31,37 @@ public class BotaoModel {
     @Column(nullable = false)
     private String urlAudio;
 
-    @ManyToMany(mappedBy = "botoesPadrao")
+    @Column(nullable = false)
+    private boolean padrao = true;
+
+    // Todos os botões pertencem a uma única categoria
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "categoria_id")
     @JsonBackReference
-    private Set<CategoriaModel> categorias = new HashSet<>();
-    
+    private CategoriaModel categoria;
+
     // Construtores
     public BotaoModel() {}
 
-    public BotaoModel(String nome, String urlImagem, String urlAudio) {
+    // Construtor para botões padrão
+    public BotaoModel(String nome, String urlImagem, String urlAudio, CategoriaModel categoria) {
         this.nome = nome;
         this.urlImagem = urlImagem;
         this.urlAudio = urlAudio;
+        this.categoria = categoria;
+        this.padrao = true;
+    }
+
+    // Construtor para botões personalizados
+    public BotaoModel(String nome, String urlImagem, String urlAudio, CategoriaModel categoria, boolean personalizado) {
+        this.nome = nome;
+        this.urlImagem = urlImagem;
+        this.urlAudio = urlAudio;
+        this.categoria = categoria;
+        this.padrao = !personalizado; // Se é personalizado, então não é padrão
     }
 
     // Getters e Setters
-    public Set<CategoriaModel> getCategorias() {
-        return categorias;
-    }
-
-    public void setCategorias(Set<CategoriaModel> categorias) {
-        this.categorias = categorias;
-    }
-    
     public UUID getId() {
         return id;
     }
@@ -83,5 +92,24 @@ public class BotaoModel {
 
     public void setUrlAudio(String urlAudio) {
         this.urlAudio = urlAudio;
+    }
+
+    public boolean isPadrao() {
+        return padrao;
+    }
+
+    public void setPadrao(boolean padrao) {
+        this.padrao = padrao;
+    }
+
+    public CategoriaModel getCategoria() {
+        return categoria;
+    }
+
+    public void setCategoria(CategoriaModel categoria) {
+        this.categoria = categoria;
+        if (categoria != null && !categoria.getBotoes().contains(this)) {
+            categoria.getBotoes().add(this);
+        }
     }
 }

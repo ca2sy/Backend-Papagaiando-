@@ -4,10 +4,11 @@ import com.papagaiando.Papagaiando.exception.AccessDeniedException;
 import com.papagaiando.Papagaiando.exception.ResourceNotFoundException;
 import com.papagaiando.Papagaiando.model.CategoriaModel;
 import com.papagaiando.Papagaiando.model.PerfilModel;
-import com.papagaiando.Papagaiando.model.BotaoPersonalizadoModel;
+import com.papagaiando.Papagaiando.model.BotaoModel;
 import com.papagaiando.Papagaiando.repository.PerfilRepository;
 import com.papagaiando.Papagaiando.repository.CategoriaRepository;
-import com.papagaiando.Papagaiando.repository.BotaoPersonalizadoModelRepository;
+import com.papagaiando.Papagaiando.repository.BotaoRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,9 +22,10 @@ public class AuthorizationService {
     
     @Autowired
     private CategoriaRepository categoriaRepository;
-    
+
     @Autowired
-    private BotaoPersonalizadoModelRepository botaoPersonalizadoRepository;
+    private BotaoRepository botaoRepository;
+
 
     public void validarPropriedadePerfil(UUID perfilId, UUID usuarioId) {
         if (!perfilRepository.existsByUsuarioIdAndId(usuarioId, perfilId)) {
@@ -37,16 +39,6 @@ public class AuthorizationService {
         
         if (!categoria.getPerfil().getUsuario().getId().equals(usuarioId)) {
             throw new AccessDeniedException("Acesso negado: categoria não pertence ao usuário");
-        }
-    }
-    
-
-    public void validarPropriedadeBotaoPersonalizado(UUID botaoId, UUID usuarioId) {
-        BotaoPersonalizadoModel botao = botaoPersonalizadoRepository.findById(botaoId)
-            .orElseThrow(() -> new ResourceNotFoundException("Botão personalizado não encontrado"));
-        
-        if (!botao.getCategoria().getPerfil().getUsuario().getId().equals(usuarioId)) {
-            throw new AccessDeniedException("Acesso negado: botão não pertence ao usuário");
         }
     }
     
@@ -72,5 +64,20 @@ public class AuthorizationService {
         validarPropriedadeCategoria(categoriaId, usuarioId);
         return categoriaRepository.findById(categoriaId)
             .orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada"));
+    }
+
+    public void validarPropriedadeBotao(UUID botaoId, UUID usuarioLogado) {
+        BotaoModel botao = botaoRepository.findById(botaoId)
+            .orElseThrow(() -> new ResourceNotFoundException("Botão não encontrado"));
+        
+        if (botao.isPadrao()) {
+            return;
+        }
+        
+        if (botao.getCategoria() != null && botao.getCategoria().getPerfil() != null) {
+            validarPropriedadePerfil(botao.getCategoria().getPerfil().getId(), usuarioLogado);
+        } else {
+            throw new SecurityException("Acesso negado ao botão");
+        }
     }
 }
